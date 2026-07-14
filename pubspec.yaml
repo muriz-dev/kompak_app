@@ -9,11 +9,27 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Core
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+  auto_route: ^11.1.0
+  flutter_bloc: ^9.1.1
+  json_annotation: ^4.12.0
+  # Local Storage
+  shared_preferences: ^2.5.5
+  # Network
+  dio: ^5.10.0
 
 dev_dependencies:
-  flutter_test:
+  # Flutter
+  flutter_test: 
     sdk: flutter
   flutter_lints: ^6.0.0
+  # Code Generation
+  build_runner: ^2.15.2
+  injectable_generator: ^3.1.0
+  auto_route_generator: ^10.6.0
+  json_serializable: ^6.14.0
 
 flutter:
   uses-material-design: true
