@@ -8,7 +8,7 @@ abstract class DioModule {
   Dio dio(SharedPreferences prefs) {
     final dio = Dio(
       BaseOptions(
-        baseUrl: 'localhost:3000', // CHANGE THIS TO YOUR API URL
+        baseUrl: 'https://kompak-api.mhmdrizki-dev.workers.dev',
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         headers: {
