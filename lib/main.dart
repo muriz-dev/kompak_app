@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'core/di/injection.dart';
+import 'core/routes/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await configureDependencies();
 
-  runApp(const MainApp());
+  runApp(MainApp());
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  MainApp({super.key});
+
+  final _appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    return MaterialApp.router(
+      routerConfig: _appRouter.config(),
     );
   }
 }
