@@ -14,6 +14,8 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
+import '../../features/attendance/presentation/bloc/attendance_cubit.dart'
+    as _i1;
 import '../../features/auth/data/datasources/auth_remote_data_source.dart'
     as _i107;
 import '../../features/auth/data/repositories/auth_repository_impl.dart'
@@ -22,6 +24,10 @@ import '../../features/auth/domain/repositories/auth_repository.dart' as _i787;
 import '../../features/auth/domain/usecases/login_usecase.dart' as _i188;
 import '../../features/auth/domain/usecases/register_usecase.dart' as _i941;
 import '../../features/auth/presentation/bloc/auth_bloc.dart' as _i797;
+import '../../features/home/presentation/bloc/home_cubit.dart' as _i816;
+import '../../features/leaderboard/presentation/bloc/leaderboard_cubit.dart'
+    as _i100;
+import '../../features/store/presentation/bloc/store_cubit.dart' as _i487;
 import '../network/dio_module.dart' as _i614;
 import '../routes/app_router.dart' as _i629;
 import 'router_model.dart' as _i553;
@@ -41,6 +47,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => sharedPrefsModule.prefs,
       preResolve: true,
     );
+    gh.factory<_i1.AttendanceCubit>(() => _i1.AttendanceCubit());
+    gh.factory<_i816.HomeCubit>(() => _i816.HomeCubit());
+    gh.factory<_i100.LeaderboardCubit>(() => _i100.LeaderboardCubit());
+    gh.factory<_i487.StoreCubit>(() => _i487.StoreCubit());
     gh.singleton<_i629.AppRouter>(() => routerModule.appRouter);
     gh.lazySingleton<_i361.Dio>(
       () => dioModule.dio(gh<_i460.SharedPreferences>()),
