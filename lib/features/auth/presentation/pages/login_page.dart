@@ -39,8 +39,8 @@ class _LoginPageState extends State<LoginPage> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(const SnackBar(content: Text('Login Success!')));
-              // TODO: Navigate to Home Route
-              // context.router.replace(const HomeRoute());
+              // Navigate to Main Route
+              context.router.replace(const MainRoute());
             } else if (state is AuthError) {
               ScaffoldMessenger.of(
                 context,
