@@ -1,0 +1,124 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../bloc/home_cubit.dart';
+import '../bloc/home_state.dart';
+import '../widgets/points_card.dart';
+import '../widgets/activity_card.dart';
+import '../widgets/announcement_card.dart';
+
+@RoutePage()
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => getIt<HomeCubit>()..loadHomeData(),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: BlocBuilder<HomeCubit, HomeState>(
+            builder: (context, state) {
+              if (state is HomeLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is HomeError) {
+                return Center(child: Text(state.message));
+              } else if (state is HomeLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Text(
+                        'Selamat Siang, ${state.userSummary.name}!',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Senang melihat Anda aktif hari ini di lingkungan RT 04.',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Points Card
+                      PointsCard(
+                        userSummary: state.userSummary,
+                        onRedeemTap: () {
+                          // TODO: Navigate to store or change tab
+                          AutoTabsRouter.of(context).setActiveIndex(2); // Index of Store
+                        },
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Kegiatan Mendatang
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Kegiatan Mendatang',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text('Lihat Semua'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 210,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: state.upcomingActivities.length,
+                          itemBuilder: (context, index) {
+                            return ActivityCard(
+                              activity: state.upcomingActivities[index],
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Pengumuman Terbaru
+                      const Text(
+                        'Pengumuman Terbaru',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: state.announcements.length,
+                        itemBuilder: (context, index) {
+                          return AnnouncementCard(
+                            announcement: state.announcements[index],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
