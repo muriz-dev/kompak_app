@@ -11,6 +11,22 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [AdminResidentsPage]
+class AdminResidentsRoute extends PageRouteInfo<void> {
+  const AdminResidentsRoute({List<PageRouteInfo>? children})
+    : super(AdminResidentsRoute.name, initialChildren: children);
+
+  static const String name = 'AdminResidentsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const AdminResidentsPage();
+    },
+  );
+}
+
+/// generated route for
 /// [AttendancePage]
 class AttendanceRoute extends PageRouteInfo<void> {
   const AttendanceRoute({List<PageRouteInfo>? children})
@@ -22,6 +38,22 @@ class AttendanceRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const AttendancePage();
+    },
+  );
+}
+
+/// generated route for
+/// [CreateEventPage]
+class CreateEventRoute extends PageRouteInfo<void> {
+  const CreateEventRoute({List<PageRouteInfo>? children})
+    : super(CreateEventRoute.name, initialChildren: children);
+
+  static const String name = 'CreateEventRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const CreateEventPage();
     },
   );
 }

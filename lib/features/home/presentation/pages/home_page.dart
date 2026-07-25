@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/routes/app_router.dart';
 import '../bloc/home_cubit.dart';
 import '../bloc/home_state.dart';
 import '../widgets/points_card.dart';
@@ -47,6 +48,30 @@ class HomePage extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
+                      const SizedBox(height: 18),
+
+                      // Temporary entry point while role-aware navigation is
+                      // being added to the authentication session.
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: FilledButton.icon(
+                          onPressed: () =>
+                              context.router.push(const AdminResidentsRoute()),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF2F67E8),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.admin_panel_settings_outlined),
+                          label: const Text(
+                            'Buka pratinjau admin',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 24),
 
                       // Points Card
@@ -54,7 +79,9 @@ class HomePage extends StatelessWidget {
                         userSummary: state.userSummary,
                         onRedeemTap: () {
                           // TODO: Navigate to store or change tab
-                          AutoTabsRouter.of(context).setActiveIndex(2); // Index of Store
+                          AutoTabsRouter.of(
+                            context,
+                          ).setActiveIndex(2); // Index of Store
                         },
                       ),
                       const SizedBox(height: 32),
