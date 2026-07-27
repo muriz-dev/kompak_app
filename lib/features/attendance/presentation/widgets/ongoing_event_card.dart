@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../domain/entities/attendance_data.dart';
 
 class OngoingEventCard extends StatelessWidget {
@@ -157,7 +159,9 @@ class OngoingEventCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.router.push(const ActivityDetailRoute());
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       padding: const EdgeInsets.symmetric(vertical: 12),

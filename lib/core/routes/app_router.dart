@@ -8,6 +8,7 @@ import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/home/presentation/pages/notification_page.dart';
+import '../../features/attendance/presentation/pages/activity_detail_page.dart';
 import 'main_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/attendance/presentation/pages/attendance_page.dart';
@@ -26,6 +27,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ResetPasswordRoute.page),
         AutoRoute(page: ProfileRoute.page),
         AutoRoute(page: NotificationRoute.page),
+        AutoRoute(page: ActivityDetailRoute.page),
         AutoRoute(
           page: MainRoute.page,
           children: [
