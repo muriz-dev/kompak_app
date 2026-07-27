@@ -25,8 +25,10 @@ class StoreCubit extends Cubit<StoreState> {
         StoreItem(
           id: '1',
           title: 'Voucher Sembako Premium',
-          description: 'Dapatkan paket lengkap beras 5kg, minyak 2L, dan gula 1kg di warung terdekat.',
-          imageUrlOrIcon: 'https://via.placeholder.com/600x300?text=Sembako',
+          description:
+              'Dapatkan paket lengkap beras 5kg, minyak 2L, dan gula 1kg di warung terdekat.',
+          imageUrlOrIcon:
+              'https://digibook.id/upload/produk/2403/AS-SALAM-2438174026HZKX.jpg',
           points: 500,
           isFeatured: true,
           itemType: ItemType.image,
@@ -41,10 +43,12 @@ class StoreCubit extends Cubit<StoreState> {
         ),
         StoreItem(
           id: '3',
-          title: 'Kaos Warga RT 04',
-          description: 'Kaos seragam.',
-          imageUrlOrIcon: 'https://via.placeholder.com/300x300?text=Kaos',
-          points: 250,
+          title: 'Paket Sarapan Sehat',
+          description:
+              'Nikmati sarapan sehat bubur ayam dan teh manis di warung mang Udin.',
+          imageUrlOrIcon:
+              'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg',
+          points: 150,
           itemType: ItemType.image,
         ),
         StoreItem(
@@ -57,24 +61,30 @@ class StoreCubit extends Cubit<StoreState> {
         ),
         StoreItem(
           id: '5',
-          title: 'Sewa Balai 50% Diskon',
-          description: 'Diskon sewa balai warga.',
-          imageUrlOrIcon: 'https://via.placeholder.com/300x300?text=Sewa+Balai',
-          points: 250,
+          title: 'Tote Bag Ramah Lingkungan',
+          description:
+              'Tote bag kanvas cantik edisi khusus warga, cocok untuk belanja harian.',
+          imageUrlOrIcon:
+              'https://images.pexels.com/photos/3731256/pexels-photo-3731256.jpeg',
+          points: 200,
           itemType: ItemType.image,
         ),
       ];
 
       final featuredItem = items.firstWhere((element) => element.isFeatured);
-      final regularItems = items.where((element) => !element.isFeatured).toList();
+      final regularItems = items
+          .where((element) => !element.isFeatured)
+          .toList();
 
-      emit(StoreLoaded(
-        stats: stats,
-        categories: categories,
-        activeCategoryId: 'all',
-        featuredItem: featuredItem,
-        regularItems: regularItems,
-      ));
+      emit(
+        StoreLoaded(
+          stats: stats,
+          categories: categories,
+          activeCategoryId: 'all',
+          featuredItem: featuredItem,
+          regularItems: regularItems,
+        ),
+      );
     } catch (e) {
       emit(StoreError(e.toString()));
     }

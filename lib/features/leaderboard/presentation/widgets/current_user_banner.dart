@@ -11,7 +11,10 @@ class CurrentUserBanner extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF2563EB), // Blue 600
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(16),
+          bottom: Radius.circular(16),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -51,7 +54,7 @@ class CurrentUserBanner extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
               color: Color(0xFF10B981), // Green
-              borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
             ),
             child: Row(
               children: [
@@ -84,7 +87,10 @@ class CurrentUserBanner extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.shade800,
                     borderRadius: BorderRadius.circular(20),

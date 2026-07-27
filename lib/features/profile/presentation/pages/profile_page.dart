@@ -1,6 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../core/routes/app_router.dart';
 
 @RoutePage()
@@ -11,8 +16,18 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
     
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+    return BlocProvider(
+      create: (context) => getIt<AuthBloc>(),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthUnauthenticated) {
+            context.router.replaceAll([const LoginRoute()]);
+          }
+        },
+        child: Builder(
+          builder: (context) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF9FAFB),
       body: Stack(
         children: [
           // 1. Blue Header Background with Pattern
@@ -233,8 +248,7 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          // Perform Logout and navigate to login
-                          context.router.replaceAll([const LoginRoute()]);
+                          context.read<AuthBloc>().add(LogoutRequested());
                         },
                       ),
                     ),
@@ -301,6 +315,10 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+            );
+          },
+        ),
       ),
     );
   }

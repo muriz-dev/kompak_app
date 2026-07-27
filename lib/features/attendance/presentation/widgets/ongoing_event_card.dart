@@ -185,6 +185,11 @@ class OngoingEventCard extends StatelessWidget {
   }
 
   Widget _buildAvatar(int index) {
+    final mockAvatars = [
+      'https://i.pravatar.cc/150?img=32',
+      'https://i.pravatar.cc/150?img=12',
+      'https://i.pravatar.cc/150?img=47',
+    ];
     return Container(
       width: 30,
       height: 30,
@@ -192,6 +197,10 @@ class OngoingEventCard extends StatelessWidget {
         shape: BoxShape.circle,
         color: Colors.blueGrey.shade200,
         border: Border.all(color: Colors.white, width: 2),
+        image: DecorationImage(
+          image: NetworkImage(mockAvatars[index % mockAvatars.length]),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

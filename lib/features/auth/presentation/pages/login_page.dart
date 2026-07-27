@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<AuthBloc>(),
+      create: (context) => getIt<AuthBloc>()..add(CheckAuthStatus()),
       child: Scaffold(
         backgroundColor: const Color(0xFF2563EB),
         body: BlocConsumer<AuthBloc, AuthState>(
@@ -59,7 +59,34 @@ class _LoginPageState extends State<LoginPage> {
                     flex: 2,
                     child: Stack(
                       children: [
-                        // We could add abstract background shapes here if needed
+                        Positioned(
+                          top: -20,
+                          right: -40,
+                          child: Transform.rotate(
+                            angle: 0.5,
+                            child: Opacity(
+                              opacity: 0.15,
+                              child: SvgPicture.asset(
+                                'assets/images/app_icon_white.svg',
+                                height: 250,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: -50,
+                          left: -50,
+                          child: Transform.rotate(
+                            angle: -0.2,
+                            child: Opacity(
+                              opacity: 0.15,
+                              child: SvgPicture.asset(
+                                'assets/images/app_icon_white.svg',
+                                height: 200,
+                              ),
+                            ),
+                          ),
+                        ),
                         Center(
                           child: SvgPicture.asset(
                             'assets/images/brand_logo_white.svg',
