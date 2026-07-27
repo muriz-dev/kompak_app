@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/routes/app_router.dart';
 import '../bloc/home_cubit.dart';
 import '../bloc/home_state.dart';
 import '../widgets/points_card.dart';
@@ -38,23 +39,33 @@ class HomePage extends StatelessWidget {
             ],
           ),
           actions: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Color(0xFF2563EB),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.notifications_none,
-                color: Colors.white,
-                size: 20,
+            GestureDetector(
+              onTap: () {
+                context.router.push(const NotificationRoute());
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2563EB),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.notifications_none,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
             const SizedBox(width: 12),
-            const CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            GestureDetector(
+              onTap: () {
+                context.router.push(const ProfileRoute());
+              },
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+              ),
             ),
             const SizedBox(width: 20),
           ],
