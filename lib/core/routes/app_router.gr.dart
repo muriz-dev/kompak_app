@@ -139,6 +139,22 @@ class NotificationRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [PointHistoryPage]
+class PointHistoryRoute extends PageRouteInfo<void> {
+  const PointHistoryRoute({List<PageRouteInfo>? children})
+    : super(PointHistoryRoute.name, initialChildren: children);
+
+  static const String name = 'PointHistoryRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PointHistoryPage();
+    },
+  );
+}
+
+/// generated route for
 /// [ProfilePage]
 class ProfileRoute extends PageRouteInfo<void> {
   const ProfileRoute({List<PageRouteInfo>? children})

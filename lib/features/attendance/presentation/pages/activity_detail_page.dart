@@ -609,7 +609,8 @@ class ActivityDetailPage extends StatelessWidget {
                   width: double.infinity,
                   child: TextButton(
                     onPressed: () {
-                      // Navigate to points history (to be implemented)
+                      // Navigate to points history
+                      context.router.push(const PointHistoryRoute());
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: const Color(

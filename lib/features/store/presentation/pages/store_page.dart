@@ -8,6 +8,7 @@ import '../widgets/store_points_card.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/featured_store_item.dart';
 import '../widgets/store_item_grid_card.dart';
+import '../../../../core/routes/app_router.dart';
 
 @RoutePage()
 class StorePage extends StatelessWidget {
@@ -35,7 +36,9 @@ class StorePage extends StatelessWidget {
                         delegate: SliverChildListDelegate([
                           StorePointsCard(
                             stats: state.stats,
-                            onHistoryTap: () {},
+                            onHistoryTap: () {
+                              context.router.push(const PointHistoryRoute());
+                            },
                           ),
                           const SizedBox(height: 24),
                           CategoryChips(
@@ -59,21 +62,20 @@ class StorePage extends StatelessWidget {
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverGrid(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.75, // Adjust for image+text+button
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            return StoreItemGridCard(
-                              item: state.regularItems[index],
-                              onRedeem: () {},
-                            );
-                          },
-                          childCount: state.regularItems.length,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio:
+                                  0.75, // Adjust for image+text+button
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return StoreItemGridCard(
+                            item: state.regularItems[index],
+                            onRedeem: () {},
+                          );
+                        }, childCount: state.regularItems.length),
                       ),
                     ),
                     SliverPadding(
@@ -94,12 +96,17 @@ class StorePage extends StatelessWidget {
                                     color: Color(0xFF2563EB), // Blue 600
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.mood, color: Colors.white, size: 24),
+                                  child: const Icon(
+                                    Icons.mood,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Butuh Poin Tambahan?',

@@ -13,6 +13,7 @@ import 'main_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/attendance/presentation/pages/attendance_page.dart';
 import '../../features/store/presentation/pages/store_page.dart';
+import '../../features/store/presentation/pages/point_history_page.dart';
 import '../../features/leaderboard/presentation/pages/leaderboard_page.dart';
 
 part 'app_router.gr.dart';
@@ -37,5 +38,6 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: LeaderboardRoute.page),
           ],
         ),
+        AutoRoute(page: PointHistoryRoute.page),
       ];
 }
