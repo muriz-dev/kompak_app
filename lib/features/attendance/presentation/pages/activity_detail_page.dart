@@ -20,7 +20,7 @@ class ActivityDetailPage extends StatelessWidget {
             right: 0,
             height: 350,
             child: Image.network(
-              'https://images.unsplash.com/photo-1592659762303-90081d34b277?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', // Placeholder image of gardening/cleaning
+              'https://images.pexels.com/photos/28434145/pexels-photo-28434145.jpeg', // Placeholder image of gardening/cleaning
               fit: BoxFit.cover,
             ),
           ),
@@ -104,7 +104,7 @@ class ActivityDetailPage extends StatelessWidget {
 
                     // Title
                     const Text(
-                      'Kerja Bakti Minggu Bersama',
+                      'Rapat Rutin & Kerja Bakti',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -208,6 +208,7 @@ class ActivityDetailPage extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 100), // Added spacing to avoid overlap with bottom bar
                   ],
                 ),
               ),
