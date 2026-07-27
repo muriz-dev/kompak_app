@@ -23,20 +23,9 @@ class HomePage extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: Row(
-            children: [
-              SvgPicture.asset('assets/images/app_icon_blue.svg', height: 32),
-              const SizedBox(width: 8),
-              const Text(
-                'KOMPAK',
-                style: TextStyle(
-                  color: Color(0xFF2563EB),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ],
+          title: SvgPicture.asset(
+            'assets/images/brand_logo_blue.svg', 
+            height: 32,
           ),
           actions: [
             GestureDetector(
