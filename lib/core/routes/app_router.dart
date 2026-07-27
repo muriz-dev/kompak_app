@@ -14,6 +14,8 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/attendance/presentation/pages/attendance_page.dart';
 import '../../features/store/presentation/pages/store_page.dart';
 import '../../features/store/presentation/pages/point_history_page.dart';
+import '../../features/store/presentation/pages/redeem_confirmation_page.dart';
+import '../../features/store/domain/entities/store_data.dart';
 import '../../features/leaderboard/presentation/pages/leaderboard_page.dart';
 
 part 'app_router.gr.dart';
@@ -39,5 +41,6 @@ class AppRouter extends RootStackRouter {
           ],
         ),
         AutoRoute(page: PointHistoryRoute.page),
+        AutoRoute(page: RedeemConfirmationRoute.page),
       ];
 }

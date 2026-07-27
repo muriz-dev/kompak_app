@@ -37,7 +37,7 @@ class StorePage extends StatelessWidget {
                           StorePointsCard(
                             stats: state.stats,
                             onHistoryTap: () {
-                              context.router.push(const PointHistoryRoute());
+                              context.router.push(PointHistoryRoute());
                             },
                           ),
                           const SizedBox(height: 24),
@@ -52,7 +52,9 @@ class StorePage extends StatelessWidget {
                           if (state.featuredItem != null) ...[
                             FeaturedStoreItem(
                               item: state.featuredItem!,
-                              onRedeem: () {},
+                              onRedeem: () {
+                                context.router.push(RedeemConfirmationRoute(item: state.featuredItem!));
+                              },
                             ),
                             const SizedBox(height: 24),
                           ],
@@ -73,7 +75,9 @@ class StorePage extends StatelessWidget {
                         delegate: SliverChildBuilderDelegate((context, index) {
                           return StoreItemGridCard(
                             item: state.regularItems[index],
-                            onRedeem: () {},
+                            onRedeem: () {
+                              context.router.push(RedeemConfirmationRoute(item: state.regularItems[index]));
+                            },
                           );
                         }, childCount: state.regularItems.length),
                       ),

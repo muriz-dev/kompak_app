@@ -171,6 +171,54 @@ class ProfileRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [RedeemConfirmationPage]
+class RedeemConfirmationRoute
+    extends PageRouteInfo<RedeemConfirmationRouteArgs> {
+  RedeemConfirmationRoute({
+    Key? key,
+    required StoreItem item,
+    List<PageRouteInfo>? children,
+  }) : super(
+         RedeemConfirmationRoute.name,
+         args: RedeemConfirmationRouteArgs(key: key, item: item),
+         initialChildren: children,
+       );
+
+  static const String name = 'RedeemConfirmationRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<RedeemConfirmationRouteArgs>();
+      return RedeemConfirmationPage(key: args.key, item: args.item);
+    },
+  );
+}
+
+class RedeemConfirmationRouteArgs {
+  const RedeemConfirmationRouteArgs({this.key, required this.item});
+
+  final Key? key;
+
+  final StoreItem item;
+
+  @override
+  String toString() {
+    return 'RedeemConfirmationRouteArgs{key: $key, item: $item}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RedeemConfirmationRouteArgs) return false;
+    return key == other.key && item == other.item;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ item.hashCode;
+}
+
+/// generated route for
 /// [RegisterPage]
 class RegisterRoute extends PageRouteInfo<void> {
   const RegisterRoute({List<PageRouteInfo>? children})
