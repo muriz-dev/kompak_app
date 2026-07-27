@@ -15,7 +15,11 @@ class PointsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2563EB), // Blue 600
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF60A5FA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -77,7 +81,7 @@ class PointsCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.workspace_premium,
+                  Icons.workspace_premium_outlined, // Outlined badge
                   color: Colors.white,
                   size: 32,
                 ),
@@ -111,7 +115,7 @@ class PointsCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: userSummary.levelProgress,
               backgroundColor: Colors.white.withOpacity(0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4ADE80)), // Light green
               minHeight: 8,
             ),
           ),
