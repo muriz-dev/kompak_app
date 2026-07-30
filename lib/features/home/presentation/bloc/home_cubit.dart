@@ -47,15 +47,18 @@ class HomeCubit extends Cubit<HomeState> {
           description:
               'Sehubungan dengan perbaikan gerbang utama, jadwal ronda malam untuk minggu...',
           tag: 'Mendesak',
-          imageUrl: 'https://via.placeholder.com/400x200', // Mock image
+          imageUrl:
+              'https://images.pexels.com/photos/5686082/pexels-photo-5686082.jpeg', // Mock image
         ),
       ];
 
-      emit(HomeLoaded(
-        userSummary: userSummary,
-        upcomingActivities: upcomingActivities,
-        announcements: announcements,
-      ));
+      emit(
+        HomeLoaded(
+          userSummary: userSummary,
+          upcomingActivities: upcomingActivities,
+          announcements: announcements,
+        ),
+      );
     } catch (e) {
       emit(HomeError(e.toString()));
     }

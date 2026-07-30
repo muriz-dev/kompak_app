@@ -5,12 +5,13 @@ Dokumen ini adalah panduan utama (Project Context) untuk AI Assistant (Antigravi
 
 ## 🛠️ Tech Stack & Dependencies
 - **Framework**: Flutter (SDK `^3.12.2`)
-- **State Management**: BLoC (`flutter_bloc`)
+- **State Management**: BLoC (`flutter_bloc`) & `equatable`
 - **Dependency Injection**: `get_it` & `injectable`
 - **Routing**: `auto_route`
 - **Networking**: `dio`
 - **Data Serialization**: `json_annotation` & `json_serializable`
 - **Local Storage**: `shared_preferences`
+- **UI & Assets**: `flutter_svg`
 - **Code Generation**: `build_runner`, `injectable_generator`, `auto_route_generator`
 
 ## 📂 Struktur Direktori (Feature-First Architecture)
@@ -40,7 +41,7 @@ lib/
 ### 2. State Management (`flutter_bloc`)
 - Gunakan **Cubit** untuk state yang sederhana (hanya butuh emit state).
 - Gunakan **BLoC** (dengan events) untuk interaksi user yang kompleks (debounce, form handling yang rumit, dll).
-- Pastikan state selalu bersifat *immutable*. Gunakan class dengan `final` properties dan pastikan meng-override `props` jika menggunakan `Equatable` (jika ditambahkan nanti).
+- Pastikan state selalu bersifat *immutable*. Gunakan class dengan `final` properties dan pastikan meng-override `props` karena kita menggunakan `Equatable`.
 
 ### 3. Routing (`auto_route`)
 - Semua navigasi halaman wajib menggunakan `auto_route`.
@@ -56,6 +57,10 @@ lib/
 - Selalu gunakan `json_annotation` untuk Model (DTO/Response).
 - Generate file `.g.dart` menggunakan `build_runner`.
 - Dilarang parsing JSON secara manual (misal: `json['key']` secara langsung tanpa class model).
+
+### 6. Assets & UI
+- Gunakan `flutter_svg` untuk menampilkan icon atau gambar berformat vektor (SVG).
+- Gambar dan asset statis diletakkan di folder `assets/images/`.
 
 ## ⚡ Workflow Pengembangan AI
 1. **Pahami Konteks**: Selalu cek struktur direktori saat ini sebelum menulis/mengubah kode.

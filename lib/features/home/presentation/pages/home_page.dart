@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/routes/app_router.dart';
 import '../bloc/home_cubit.dart';
@@ -19,6 +20,45 @@ class HomePage extends StatelessWidget {
       create: (context) => getIt<HomeCubit>()..loadHomeData(),
       child: Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: SvgPicture.asset(
+            'assets/images/brand_logo_blue.svg', 
+            height: 32,
+          ),
+          actions: [
+            GestureDetector(
+              onTap: () {
+                context.router.push(const NotificationRoute());
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2563EB),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.notifications_none,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: () {
+                context.router.push(const ProfileRoute());
+              },
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+              ),
+            ),
+            const SizedBox(width: 20),
+          ],
+        ),
         body: SafeArea(
           child: BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {

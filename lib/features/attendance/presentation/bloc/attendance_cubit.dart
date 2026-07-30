@@ -22,7 +22,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final ongoingEvent = OngoingEvent(
         id: '1',
         title: 'Rapat Rutin & Kerja Bakti',
-        imageUrl: 'https://via.placeholder.com/400x200?text=Rapat+Rutin',
+        imageUrl:
+            'https://images.pexels.com/photos/28434145/pexels-photo-28434145.jpeg',
         tag: 'MENDESAK',
         timeRemaining: 'Berakhir dlm 45 mnt',
         participantCount: 24,
@@ -56,11 +57,13 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         ),
       ];
 
-      emit(AttendanceLoaded(
-        stats: stats,
-        ongoingEvent: ongoingEvent,
-        upcomingEvents: upcomingEvents,
-      ));
+      emit(
+        AttendanceLoaded(
+          stats: stats,
+          ongoingEvent: ongoingEvent,
+          upcomingEvents: upcomingEvents,
+        ),
+      );
     } catch (e) {
       emit(AttendanceError(e.toString()));
     }

@@ -26,7 +26,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> register(RegisterRequest request) async {
-    await _remoteDataSource.register(request);
+    final data = await _remoteDataSource.register(request);
+    final token = data['token'] as String?;
+    if (token != null) {
+      await _prefs.setString('jwt_token', token);
+    }
   }
 
   @override

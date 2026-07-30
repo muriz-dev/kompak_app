@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../domain/entities/attendance_data.dart';
 
 class OngoingEventCard extends StatelessWidget {
@@ -157,7 +159,9 @@ class OngoingEventCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.router.push(const ActivityDetailRoute());
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -181,6 +185,11 @@ class OngoingEventCard extends StatelessWidget {
   }
 
   Widget _buildAvatar(int index) {
+    final mockAvatars = [
+      'https://i.pravatar.cc/150?img=32',
+      'https://i.pravatar.cc/150?img=12',
+      'https://i.pravatar.cc/150?img=47',
+    ];
     return Container(
       width: 30,
       height: 30,
@@ -188,6 +197,10 @@ class OngoingEventCard extends StatelessWidget {
         shape: BoxShape.circle,
         color: Colors.blueGrey.shade200,
         border: Border.all(color: Colors.white, width: 2),
+        image: DecorationImage(
+          image: NetworkImage(mockAvatars[index % mockAvatars.length]),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

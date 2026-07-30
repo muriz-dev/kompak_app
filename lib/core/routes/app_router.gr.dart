@@ -11,6 +11,22 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [ActivityDetailPage]
+class ActivityDetailRoute extends PageRouteInfo<void> {
+  const ActivityDetailRoute({List<PageRouteInfo>? children})
+    : super(ActivityDetailRoute.name, initialChildren: children);
+
+  static const String name = 'ActivityDetailRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ActivityDetailPage();
+    },
+  );
+}
+
+/// generated route for
 /// [AdminResidentsPage]
 class AdminResidentsRoute extends PageRouteInfo<void> {
   const AdminResidentsRoute({List<PageRouteInfo>? children})
@@ -54,6 +70,22 @@ class CreateEventRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const CreateEventPage();
+    },
+  );
+}
+
+/// generated route for
+/// [ForgotPasswordPage]
+class ForgotPasswordRoute extends PageRouteInfo<void> {
+  const ForgotPasswordRoute({List<PageRouteInfo>? children})
+    : super(ForgotPasswordRoute.name, initialChildren: children);
+
+  static const String name = 'ForgotPasswordRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ForgotPasswordPage();
     },
   );
 }
@@ -123,6 +155,102 @@ class MainRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [NotificationPage]
+class NotificationRoute extends PageRouteInfo<void> {
+  const NotificationRoute({List<PageRouteInfo>? children})
+    : super(NotificationRoute.name, initialChildren: children);
+
+  static const String name = 'NotificationRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const NotificationPage();
+    },
+  );
+}
+
+/// generated route for
+/// [PointHistoryPage]
+class PointHistoryRoute extends PageRouteInfo<void> {
+  const PointHistoryRoute({List<PageRouteInfo>? children})
+    : super(PointHistoryRoute.name, initialChildren: children);
+
+  static const String name = 'PointHistoryRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PointHistoryPage();
+    },
+  );
+}
+
+/// generated route for
+/// [ProfilePage]
+class ProfileRoute extends PageRouteInfo<void> {
+  const ProfileRoute({List<PageRouteInfo>? children})
+    : super(ProfileRoute.name, initialChildren: children);
+
+  static const String name = 'ProfileRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ProfilePage();
+    },
+  );
+}
+
+/// generated route for
+/// [RedeemConfirmationPage]
+class RedeemConfirmationRoute
+    extends PageRouteInfo<RedeemConfirmationRouteArgs> {
+  RedeemConfirmationRoute({
+    Key? key,
+    required StoreItem item,
+    List<PageRouteInfo>? children,
+  }) : super(
+         RedeemConfirmationRoute.name,
+         args: RedeemConfirmationRouteArgs(key: key, item: item),
+         initialChildren: children,
+       );
+
+  static const String name = 'RedeemConfirmationRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<RedeemConfirmationRouteArgs>();
+      return RedeemConfirmationPage(key: args.key, item: args.item);
+    },
+  );
+}
+
+class RedeemConfirmationRouteArgs {
+  const RedeemConfirmationRouteArgs({this.key, required this.item});
+
+  final Key? key;
+
+  final StoreItem item;
+
+  @override
+  String toString() {
+    return 'RedeemConfirmationRouteArgs{key: $key, item: $item}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RedeemConfirmationRouteArgs) return false;
+    return key == other.key && item == other.item;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ item.hashCode;
+}
+
+/// generated route for
 /// [RegisterPage]
 class RegisterRoute extends PageRouteInfo<void> {
   const RegisterRoute({List<PageRouteInfo>? children})
@@ -134,6 +262,22 @@ class RegisterRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const RegisterPage();
+    },
+  );
+}
+
+/// generated route for
+/// [ResetPasswordPage]
+class ResetPasswordRoute extends PageRouteInfo<void> {
+  const ResetPasswordRoute({List<PageRouteInfo>? children})
+    : super(ResetPasswordRoute.name, initialChildren: children);
+
+  static const String name = 'ResetPasswordRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ResetPasswordPage();
     },
   );
 }

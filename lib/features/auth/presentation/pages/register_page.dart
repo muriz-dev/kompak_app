@@ -366,34 +366,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 color: Color(0xFF2563EB),
                               ),
                             ),
-                          Container(
-                            width: 220,
-                            height: 280,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xFF2563EB),
-                                width: 4,
-                              ),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          Positioned(
-                            top: 140,
-                            child: Container(
-                              width: 220,
-                              height: 2,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.white.withOpacity(0.8),
-                                    blurRadius: 4,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -479,7 +451,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           )
                         : const Center(
-                            child: Icon(Icons.face, size: 64, color: Colors.grey),
+                            child: Icon(
+                              Icons.face,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
                           ),
                   ),
                   const SizedBox(height: 24),
