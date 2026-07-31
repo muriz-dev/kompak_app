@@ -29,7 +29,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: RegisterRoute.page),
     AutoRoute(page: ForgotPasswordRoute.page),
     AutoRoute(page: ResetPasswordRoute.page),
-    AutoRoute(page: ProfileRoute.page),
+    AutoRoute(page: ProfileRoute.page, path: '/profile'),
     AutoRoute(page: NotificationRoute.page),
     AutoRoute(page: ActivityDetailRoute.page),
     AutoRoute(page: AdminResidentsRoute.page, path: '/admin/residents'),

@@ -1,82 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../domain/entities/home_data.dart';
 
 class ActivityCard extends StatelessWidget {
-  final UpcomingActivity activity;
+  const ActivityCard({
+    super.key,
+    required this.activity,
+    required this.onReminderTap,
+  });
 
-  const ActivityCard({super.key, required this.activity});
+  final UpcomingActivity activity;
+  final VoidCallback onReminderTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
-      margin: const EdgeInsets.only(right: 16),
+      width: 240,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE6E8EB)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.campaign, color: Colors.blue, size: 24),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: activity.isImportant ? Colors.green : Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  activity.tag,
-                  style: TextStyle(
-                    color: activity.isImportant ? Colors.white : Colors.grey.shade700,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFBFD1F8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.campaign_outlined,
+              color: Color(0xFF2F67E8),
+              size: 25,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Text(
             activity.title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF0F1C2E),
+              fontSize: 16,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
           Row(
             children: [
-              Icon(Icons.calendar_today, size: 14, color: Colors.grey.shade600),
-              const SizedBox(width: 4),
-              Text(
-                DateFormat('dd MMM, HH:mm').format(activity.date),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 17,
+                color: Color(0xFF45524A),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  DateFormat('dd MMM, HH:mm').format(activity.date),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF45524A),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ],
@@ -84,16 +77,21 @@ class ActivityCard extends StatelessWidget {
           const Spacer(),
           SizedBox(
             width: double.infinity,
+            height: 36,
             child: OutlinedButton(
-              onPressed: () {},
+              key: ValueKey('home-reminder-${activity.id}'),
+              onPressed: onReminderTap,
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue,
-                side: const BorderSide(color: Colors.blue),
+                foregroundColor: const Color(0xFF2F67E8),
+                side: const BorderSide(color: Color(0xFF2F67E8)),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text('Ingatkan'),
+              child: const Text(
+                'Ingatkan',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
             ),
           ),
         ],
