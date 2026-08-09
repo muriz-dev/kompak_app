@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import '../../data/models/login_request.dart';
 import '../repositories/auth_repository.dart';
+import '../entities/session_user.dart';
 
 @lazySingleton
 class LoginUseCase {
@@ -8,7 +9,7 @@ class LoginUseCase {
 
   LoginUseCase(this._repository);
 
-  Future<void> call(LoginRequest request) {
+  Future<SessionUser> call(LoginRequest request) {
     return _repository.login(request);
   }
 }

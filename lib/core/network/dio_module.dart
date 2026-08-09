@@ -1,13 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../auth/session_invalidation_bus.dart';
+import '../auth/session_token_store.dart';
 import '../config/app_config.dart';
 
 @module
 abstract class DioModule {
   @lazySingleton
-  Dio dio(SharedPreferences prefs) {
+  Dio dio(
+    SessionTokenStore tokenStore,
+    SessionInvalidationBus invalidationBus,
+  ) {
     final dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.apiBaseUrl,
@@ -19,8 +23,8 @@ abstract class DioModule {
 
     dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final String? token = prefs.getString('jwt_token');
+        onRequest: (options, handler) async {
+          final token = await tokenStore.read();
 
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -30,9 +34,8 @@ abstract class DioModule {
         },
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
-            await prefs.remove('jwt_token');
-
-            // You can trigger navigation to the Login page here if needed
+            await tokenStore.clear();
+            invalidationBus.invalidate();
           }
           return handler.next(e);
         },
@@ -40,7 +43,13 @@ abstract class DioModule {
     );
 
     dio.interceptors.add(
-      LogInterceptor(requestBody: false, responseBody: false, error: true),
+      LogInterceptor(
+        requestHeader: false,
+        responseHeader: false,
+        requestBody: false,
+        responseBody: false,
+        error: true,
+      ),
     );
 
     return dio;

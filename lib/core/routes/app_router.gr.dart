@@ -59,6 +59,22 @@ class AttendanceRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [BlockedAccountPage]
+class BlockedAccountRoute extends PageRouteInfo<void> {
+  const BlockedAccountRoute({List<PageRouteInfo>? children})
+    : super(BlockedAccountRoute.name, initialChildren: children);
+
+  static const String name = 'BlockedAccountRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const BlockedAccountPage();
+    },
+  );
+}
+
+/// generated route for
 /// [CreateEventPage]
 class CreateEventRoute extends PageRouteInfo<void> {
   const CreateEventRoute({List<PageRouteInfo>? children})
@@ -171,6 +187,22 @@ class NotificationRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [PendingApprovalPage]
+class PendingApprovalRoute extends PageRouteInfo<void> {
+  const PendingApprovalRoute({List<PageRouteInfo>? children})
+    : super(PendingApprovalRoute.name, initialChildren: children);
+
+  static const String name = 'PendingApprovalRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PendingApprovalPage();
+    },
+  );
+}
+
+/// generated route for
 /// [PointHistoryPage]
 class PointHistoryRoute extends PageRouteInfo<void> {
   const PointHistoryRoute({List<PageRouteInfo>? children})
@@ -267,6 +299,22 @@ class RegisterRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [RejectedAccountPage]
+class RejectedAccountRoute extends PageRouteInfo<void> {
+  const RejectedAccountRoute({List<PageRouteInfo>? children})
+    : super(RejectedAccountRoute.name, initialChildren: children);
+
+  static const String name = 'RejectedAccountRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const RejectedAccountPage();
+    },
+  );
+}
+
+/// generated route for
 /// [ResetPasswordPage]
 class ResetPasswordRoute extends PageRouteInfo<void> {
   const ResetPasswordRoute({List<PageRouteInfo>? children})
@@ -278,6 +326,22 @@ class ResetPasswordRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const ResetPasswordPage();
+    },
+  );
+}
+
+/// generated route for
+/// [SessionGatePage]
+class SessionGateRoute extends PageRouteInfo<void> {
+  const SessionGateRoute({List<PageRouteInfo>? children})
+    : super(SessionGateRoute.name, initialChildren: children);
+
+  static const String name = 'SessionGateRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SessionGatePage();
     },
   );
 }

@@ -1,0 +1,210 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kompak_app/core/auth/session_invalidation_bus.dart';
+import 'package:kompak_app/core/auth/session_token_store.dart';
+import 'package:kompak_app/core/di/injection.dart';
+import 'package:kompak_app/core/network/dio_module.dart';
+import 'package:kompak_app/core/routes/app_router.dart';
+import 'package:kompak_app/core/routes/main_page.dart';
+import 'package:kompak_app/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:kompak_app/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:kompak_app/features/auth/presentation/session/session_cubit.dart';
+import 'package:kompak_app/features/home/presentation/bloc/home_cubit.dart';
+import 'package:kompak_app/main.dart';
+
+class _MemoryTokenStore implements SessionTokenStore {
+  _MemoryTokenStore(this.token);
+
+  String? token;
+
+  @override
+  Future<void> clear() async => token = null;
+
+  @override
+  Future<String?> read() async => token;
+
+  @override
+  Future<void> write(String token) async => this.token = token;
+}
+
+class _TestDioModule extends DioModule {}
+
+class _SessionAdapter implements HttpClientAdapter {
+  _SessionAdapter({required this.status, this.responseStatus = 200});
+
+  String status;
+  int responseStatus;
+  String? lastAuthorization;
+
+  Map<String, dynamic> get user => {
+    'id': 'resident-1',
+    'name': 'Olivia Rhye',
+    'phoneNumber': '+628123456789',
+    'birthDate': '1995-06-12',
+    'email': 'olivia@example.com',
+    'balance': 1200,
+    'leaderboardPoints': 90,
+    'status': status,
+    'role': 'CITIZEN',
+  };
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    lastAuthorization = options.headers['Authorization'] as String?;
+    final body = responseStatus == 200
+        ? {
+            'success': true,
+            'data': options.path == '/auth/login'
+                ? {'token': 'login-token', 'user': user}
+                : user,
+          }
+        : {'success': false, 'message': 'Unauthorized'};
+
+    return ResponseBody.fromString(
+      jsonEncode(body),
+      responseStatus,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+}
+
+void main() {
+  Future<
+    ({
+      SessionCubit cubit,
+      _SessionAdapter adapter,
+      AppRouter router,
+      _MemoryTokenStore tokenStore,
+    })
+  >
+  pumpSessionApp(
+    WidgetTester tester, {
+    required String? token,
+    String status = 'PENDING',
+    int responseStatus = 200,
+  }) async {
+    tester.view.devicePixelRatio = 2;
+    tester.view.physicalSize = const Size(780, 1688);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await getIt.reset();
+    getIt.registerFactory<HomeCubit>(HomeCubit.new);
+
+    final adapter = _SessionAdapter(
+      status: status,
+      responseStatus: responseStatus,
+    );
+    final tokenStore = _MemoryTokenStore(token);
+    final bus = SessionInvalidationBus();
+    final dio = _TestDioModule().dio(tokenStore, bus)
+      ..httpClientAdapter = adapter;
+    final repository = AuthRepositoryImpl(
+      AuthRemoteDataSourceImpl(dio),
+      tokenStore,
+    );
+    final cubit = SessionCubit(repository, bus);
+    final router = AppRouter(cubit);
+
+    addTearDown(() async {
+      await cubit.close();
+      bus.dispose();
+      await getIt.reset();
+    });
+
+    await tester.pumpWidget(
+      BlocProvider.value(
+        value: cubit,
+        child: MainApp(appRouter: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return (
+      cubit: cubit,
+      adapter: adapter,
+      router: router,
+      tokenStore: tokenStore,
+    );
+  }
+
+  testWidgets('opens login when no saved token exists', (tester) async {
+    await pumpSessionApp(tester, token: null);
+
+    expect(find.text('Selamat Datang!'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
+  });
+
+  testWidgets('opens pending approval and enters the app after approval', (
+    tester,
+  ) async {
+    final harness = await pumpSessionApp(tester, token: 'pending-token');
+
+    expect(find.text('Menunggu Persetujuan'), findsOneWidget);
+    expect(harness.adapter.lastAuthorization, 'Bearer pending-token');
+    harness.adapter.status = 'ACTIVE';
+
+    await tester.tap(find.text('Cek Status'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainPage), findsOneWidget);
+    expect(find.text('Menunggu Persetujuan'), findsNothing);
+  });
+
+  testWidgets('routes a pending login and stores its token', (tester) async {
+    final harness = await pumpSessionApp(tester, token: null);
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'olivia@example.com');
+    await tester.enterText(fields.at(1), 'password123');
+    await tester.tap(find.text('Masuk'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Menunggu Persetujuan'), findsOneWidget);
+    expect(harness.tokenStore.token, 'login-token');
+  });
+
+  testWidgets('opens the rejection state for a rejected resident', (
+    tester,
+  ) async {
+    await pumpSessionApp(tester, token: 'rejected-token', status: 'REJECTED');
+
+    expect(find.text('Pendaftaran Ditolak'), findsOneWidget);
+    expect(find.text('Kembali ke Login'), findsOneWidget);
+  });
+
+  testWidgets('clears an expired session and returns to login', (tester) async {
+    await pumpSessionApp(tester, token: 'expired-token', responseStatus: 401);
+
+    expect(find.text('Selamat Datang!'), findsOneWidget);
+  });
+
+  testWidgets('keeps the token when session refresh fails temporarily', (
+    tester,
+  ) async {
+    final harness = await pumpSessionApp(
+      tester,
+      token: 'retry-token',
+      responseStatus: 503,
+    );
+
+    expect(find.text('Tidak dapat memeriksa sesi'), findsOneWidget);
+    expect(find.text('Coba Lagi'), findsOneWidget);
+    expect(harness.tokenStore.token, 'retry-token');
+  });
+}

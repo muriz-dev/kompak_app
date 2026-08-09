@@ -6,7 +6,7 @@ import 'package:kompak_app/features/auth/data/models/login_request.dart';
 import 'package:kompak_app/features/auth/data/models/register_request.dart';
 import 'package:kompak_app/features/auth/data/models/registration_receipt.dart';
 import 'package:kompak_app/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kompak_app/features/auth/domain/usecases/login_usecase.dart';
+import 'package:kompak_app/features/auth/domain/entities/session_user.dart';
 import 'package:kompak_app/features/auth/domain/usecases/register_usecase.dart';
 import 'package:kompak_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:kompak_app/features/auth/presentation/bloc/auth_event.dart';
@@ -14,10 +14,13 @@ import 'package:kompak_app/features/auth/presentation/pages/register_page.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
-  Future<bool> isLoggedIn() async => false;
+  Future<SessionUser?> restoreSession() async => null;
 
   @override
-  Future<void> login(LoginRequest request) async {}
+  Future<SessionUser> login(LoginRequest request) => throw UnimplementedError();
+
+  @override
+  Future<SessionUser?> refreshSession() => throw UnimplementedError();
 
   @override
   Future<void> logout() async {}
@@ -40,11 +43,7 @@ void main() {
     await getIt.reset();
     repository = _FakeAuthRepository();
     getIt.registerFactory<AuthBloc>(() {
-      authBloc = AuthBloc(
-        LoginUseCase(repository),
-        RegisterUseCase(repository),
-        repository,
-      );
+      authBloc = AuthBloc(RegisterUseCase(repository));
       return authBloc;
     });
   });

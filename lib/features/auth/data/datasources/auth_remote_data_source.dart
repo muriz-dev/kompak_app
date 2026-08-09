@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import '../models/login_request.dart';
+import '../models/login_response.dart';
 import '../models/register_request.dart';
 import '../models/registration_receipt.dart';
 import '../../domain/entities/registration_failure.dart';
+import '../../domain/entities/session_user.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<Map<String, dynamic>> login(LoginRequest request);
+  Future<LoginResponse> login(LoginRequest request);
+  Future<SessionUser> getCurrentUser();
   Future<RegistrationReceipt> register(RegisterRequest request);
 }
 
@@ -17,18 +20,36 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<Map<String, dynamic>> login(LoginRequest request) async {
+  Future<LoginResponse> login(LoginRequest request) async {
     try {
       final response = await _dio.post('/auth/login', data: request.toJson());
 
       // The API returns ApiResponse.ok format: { "success": true, "message": "...", "data": { "token": "...", "user": {...} } }
       if (response.data['success'] == true) {
-        return response.data['data'];
+        return LoginResponse.fromJson(
+          Map<String, dynamic>.from(response.data['data'] as Map),
+        );
       } else {
         throw Exception(response.data['message'] ?? 'Login failed');
       }
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? e.message);
+    }
+  }
+
+  @override
+  Future<SessionUser> getCurrentUser() async {
+    try {
+      final response = await _dio.get('/auth/me');
+      if (response.data['success'] == true) {
+        return SessionUser.fromJson(
+          Map<String, dynamic>.from(response.data['data'] as Map),
+        );
+      }
+      throw Exception(response.data['message'] ?? 'Session check failed');
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 401) rethrow;
+      throw Exception(error.response?.data['message'] ?? error.message);
     }
   }
 

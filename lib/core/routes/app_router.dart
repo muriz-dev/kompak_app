@@ -7,6 +7,9 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
+import '../../features/auth/presentation/pages/session_gate_page.dart';
+import '../../features/auth/presentation/pages/account_status_pages.dart';
+import '../../features/auth/presentation/session/session_cubit.dart';
 import '../../features/attendance/presentation/pages/attendance_page.dart';
 import '../../features/attendance/presentation/pages/activity_detail_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
@@ -18,24 +21,49 @@ import '../../features/store/presentation/pages/redeem_confirmation_page.dart';
 import '../../features/store/domain/entities/store_data.dart';
 import '../../features/leaderboard/presentation/pages/leaderboard_page.dart';
 import 'main_page.dart';
+import 'session_guards.dart';
 
 part 'app_router.gr.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
+  AppRouter(SessionCubit sessionCubit)
+    : _activeSessionGuard = ActiveSessionGuard(sessionCubit),
+      _adminSessionGuard = AdminSessionGuard(sessionCubit);
+
+  final ActiveSessionGuard _activeSessionGuard;
+  final AdminSessionGuard _adminSessionGuard;
+
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: LoginRoute.page, initial: true),
+    AutoRoute(page: SessionGateRoute.page, initial: true),
+    AutoRoute(page: LoginRoute.page),
     AutoRoute(page: RegisterRoute.page),
     AutoRoute(page: ForgotPasswordRoute.page),
     AutoRoute(page: ResetPasswordRoute.page),
-    AutoRoute(page: ProfileRoute.page, path: '/profile'),
-    AutoRoute(page: NotificationRoute.page),
-    AutoRoute(page: ActivityDetailRoute.page),
-    AutoRoute(page: AdminResidentsRoute.page, path: '/admin/residents'),
-    AutoRoute(page: CreateEventRoute.page, path: '/admin/events/create'),
+    AutoRoute(page: PendingApprovalRoute.page),
+    AutoRoute(page: RejectedAccountRoute.page),
+    AutoRoute(page: BlockedAccountRoute.page),
+    AutoRoute(
+      page: ProfileRoute.page,
+      path: '/profile',
+      guards: [_activeSessionGuard],
+    ),
+    AutoRoute(page: NotificationRoute.page, guards: [_activeSessionGuard]),
+    AutoRoute(page: ActivityDetailRoute.page, guards: [_activeSessionGuard]),
+    AutoRoute(
+      page: AdminResidentsRoute.page,
+      path: '/admin/residents',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: CreateEventRoute.page,
+      path: '/admin/events/create',
+      guards: [_adminSessionGuard],
+    ),
     AutoRoute(
       page: MainRoute.page,
+      guards: [_activeSessionGuard],
       children: [
         AutoRoute(page: HomeRoute.page, initial: true),
         AutoRoute(page: AttendanceRoute.page),
@@ -43,7 +71,10 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: LeaderboardRoute.page),
       ],
     ),
-    AutoRoute(page: PointHistoryRoute.page),
-    AutoRoute(page: RedeemConfirmationRoute.page),
+    AutoRoute(page: PointHistoryRoute.page, guards: [_activeSessionGuard]),
+    AutoRoute(
+      page: RedeemConfirmationRoute.page,
+      guards: [_activeSessionGuard],
+    ),
   ];
 }

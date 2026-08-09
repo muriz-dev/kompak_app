@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/di/injection.dart';
 import '../../../../core/routes/app_router.dart';
 import '../widgets/profile_view.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/session/session_cubit.dart';
 
 @RoutePage()
 class ProfilePage extends StatelessWidget {
@@ -16,26 +13,13 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<AuthBloc>(),
-      child: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthUnauthenticated) {
-            context.router.replaceAll([const LoginRoute()]);
-          }
-        },
-        child: Builder(
-          builder: (context) => ProfileView(
-            data: ProfileViewData.placeholder,
-            onBack: () => context.router.maybePop(),
-            onForgotPassword: () =>
-                context.router.push(const ForgotPasswordRoute()),
-            onHelpPhoneTap: () => _copyHelpPhone(context),
-            onLogout: () => context.read<AuthBloc>().add(LogoutRequested()),
-            onNavigationSelected: (index) => _openMainTab(context, index),
-          ),
-        ),
-      ),
+    return ProfileView(
+      data: ProfileViewData.placeholder,
+      onBack: () => context.router.maybePop(),
+      onForgotPassword: () => context.router.push(const ForgotPasswordRoute()),
+      onHelpPhoneTap: () => _copyHelpPhone(context),
+      onLogout: context.read<SessionCubit>().logout,
+      onNavigationSelected: (index) => _openMainTab(context, index),
     );
   }
 

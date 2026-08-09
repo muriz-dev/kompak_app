@@ -1,6 +1,8 @@
 import 'package:injectable/injectable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/auth/session_token_store.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/entities/session_user.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
@@ -9,20 +11,15 @@ import '../models/registration_receipt.dart';
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
-  final SharedPreferences _prefs;
+  final SessionTokenStore _tokenStore;
 
-  AuthRepositoryImpl(this._remoteDataSource, this._prefs);
+  AuthRepositoryImpl(this._remoteDataSource, this._tokenStore);
 
   @override
-  Future<void> login(LoginRequest request) async {
-    final data = await _remoteDataSource.login(request);
-
-    final token = data['token'] as String?;
-    if (token != null) {
-      await _prefs.setString('jwt_token', token);
-    } else {
-      throw Exception('Token not found in response');
-    }
+  Future<SessionUser> login(LoginRequest request) async {
+    final response = await _remoteDataSource.login(request);
+    await _tokenStore.write(response.token);
+    return response.user;
   }
 
   @override
@@ -32,12 +29,32 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await _prefs.remove('jwt_token');
+    await _tokenStore.clear();
   }
 
   @override
-  Future<bool> isLoggedIn() async {
-    final token = _prefs.getString('jwt_token');
-    return token != null && token.isNotEmpty;
+  Future<SessionUser?> restoreSession() async {
+    final token = await _tokenStore.read();
+    if (token == null || token.isEmpty) return null;
+    return _getCurrentUserOrNullOnUnauthorized();
+  }
+
+  @override
+  Future<SessionUser?> refreshSession() =>
+      _getCurrentUserOrNullOnUnauthorized();
+
+  Future<SessionUser?> _getCurrentUserOrNullOnUnauthorized() async {
+    try {
+      return await _remoteDataSource.getCurrentUser();
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 401) {
+        await _tokenStore.clear();
+        return null;
+      }
+      rethrow;
+    } catch (_) {
+      if (await _tokenStore.read() == null) return null;
+      rethrow;
+    }
   }
 }
