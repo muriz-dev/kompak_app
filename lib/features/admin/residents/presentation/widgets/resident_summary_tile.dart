@@ -1,27 +1,34 @@
 import 'package:flutter/material.dart';
 
 class ResidentSummaryTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
   const ResidentSummaryTile({
-    super.key,
     required this.label,
     required this.value,
     required this.color,
+    super.key,
   });
+
+  final String label;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: '$label, $value',
       child: Container(
-        height: 104,
-        padding: const EdgeInsets.all(18),
+        height: 77,
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0D000000),
+              offset: Offset(0, 1),
+              blurRadius: 2,
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,18 +40,21 @@ class ResidentSummaryTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                height: 1.15,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 27,
+                fontSize: 20,
                 height: 1,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],

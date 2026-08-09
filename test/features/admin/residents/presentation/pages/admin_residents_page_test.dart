@@ -152,24 +152,35 @@ void main() {
     return adapter;
   }
 
-  testWidgets('loads real residents and opens the pending queue first', (
+  testWidgets('loads the Figma-aligned dashboard with real resident data', (
     tester,
   ) async {
     final adapter = await pumpPage(tester);
 
     expect(find.text('Manajemen Warga'), findsOneWidget);
+    expect(find.text('RT 004 / RW 012 - Kelurahan Harmoni'), findsOneWidget);
     expect(find.text('Total Warga'), findsOneWidget);
+    expect(find.text('Menunggu'), findsWidgets);
+    expect(find.text('Warga Aktif'), findsOneWidget);
+    expect(find.text('Total Saldo Poin'), findsOneWidget);
+    expect(find.text('2.1k'), findsOneWidget);
+    expect(find.text('Manajemen'), findsOneWidget);
+    expect(find.text('Tambah Warga'), findsOneWidget);
+    expect(find.text('Pengumuman'), findsOneWidget);
+    expect(find.text('Provider'), findsOneWidget);
+    expect(find.text('Toko Poin'), findsOneWidget);
+    expect(find.text('Kegiatan'), findsOneWidget);
+    expect(find.text('Reward'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
     expect(find.text('Budi Pratama'), findsOneWidget);
-    expect(find.text('Siti Rahma'), findsNothing);
+    expect(find.text('Siti Rahma'), findsOneWidget);
+    expect(find.text('Agus Mulyadi'), findsOneWidget);
     expect(adapter.requests.single.method, 'GET');
     expect(adapter.requests.single.path, '/users');
     expect(adapter.lastAuthorization, 'Bearer admin-token');
   });
 
-  testWidgets('searches the server-backed pending resident list', (
-    tester,
-  ) async {
+  testWidgets('searches the server-backed resident list', (tester) async {
     await pumpPage(tester);
 
     await tester.enterText(find.byType(TextField), 'tidak ada');
@@ -214,8 +225,9 @@ void main() {
     expect(patch.path, '/users/pending-1/status');
     expect(patch.data, {'status': 'ACTIVE'});
     expect(find.text('Budi Pratama berhasil disetujui.'), findsOneWidget);
-    expect(find.text('Budi Pratama'), findsNothing);
-    expect(find.text('Warga tidak ditemukan'), findsOneWidget);
+    expect(find.text('Budi Pratama'), findsOneWidget);
+    expect(find.byKey(const ValueKey('approve-pending-1')), findsNothing);
+    expect(adapter.residents.first['status'], 'ACTIVE');
   });
 
   testWidgets('rejects a pending resident through the status API', (
@@ -236,7 +248,8 @@ void main() {
     expect(patch.path, '/users/pending-1/status');
     expect(patch.data, {'status': 'REJECTED'});
     expect(find.text('Pendaftaran Budi Pratama ditolak.'), findsOneWidget);
-    expect(find.text('Budi Pratama'), findsNothing);
+    expect(find.text('Budi Pratama'), findsOneWidget);
+    expect(adapter.residents.first['status'], 'REJECTED');
   });
 
   testWidgets('shows a retry state when residents cannot be loaded', (

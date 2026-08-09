@@ -1,9 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/routes/app_router.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../domain/entities/resident.dart';
 import '../bloc/admin_residents_cubit.dart';
 import '../bloc/admin_residents_state.dart';
@@ -11,6 +13,15 @@ import '../widgets/resident_card.dart';
 import '../widgets/resident_summary_tile.dart';
 
 enum _ResidentFilter { all, pending, active, rejected, inactive }
+
+enum _ManagementAction {
+  addResident,
+  announcements,
+  providers,
+  pointStore,
+  events,
+  rewards,
+}
 
 @RoutePage()
 class AdminResidentsPage extends StatelessWidget {
@@ -33,14 +44,13 @@ class _AdminResidentsView extends StatefulWidget {
 }
 
 class _AdminResidentsViewState extends State<_AdminResidentsView> {
-  static const _blue = Color(0xFF2F67E8);
-  static const _green = Color(0xFF10B96C);
-  static const _ink = Color(0xFF22262D);
-  static const _muted = Color(0xFF667085);
+  static const _ink = Color(0xFF2F3236);
+  static const _muted = Color(0xFF68696A);
+  static const _field = Color(0xFFF1F1F2);
   static const _pageSize = 4;
 
   final _searchController = TextEditingController();
-  _ResidentFilter _filter = _ResidentFilter.pending;
+  _ResidentFilter _filter = _ResidentFilter.all;
   int _currentPage = 0;
 
   @override
@@ -60,9 +70,7 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
       listener: (context, state) {
         final message = (state as AdminResidentsLoaded).actionError;
         if (message == null) return;
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(message)));
+        _showMessage(message);
       },
       builder: (context, state) {
         final residents = state is AdminResidentsLoaded
@@ -77,55 +85,42 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
         );
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFFEFFFF),
           body: SafeArea(
             child: RefreshIndicator(
               onRefresh: context.read<AdminResidentsCubit>().loadResidents,
               child: ListView(
+                key: const ValueKey('admin-dashboard-scroll'),
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
                 children: [
                   const _Header(),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 18),
                   _Summary(
                     residents: residents,
                     loading: state is AdminResidentsLoading,
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 54,
-                    child: FilledButton.icon(
-                      onPressed: () =>
-                          context.router.push(const CreateEventRoute()),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add_task_rounded),
-                      label: const Text(
-                        'Kegiatan Baru',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 18),
+                  _ManagementGrid(onSelected: _handleManagementAction),
+                  const SizedBox(height: 20),
                   TextField(
+                    key: const ValueKey('resident-search'),
                     controller: _searchController,
                     onChanged: (_) => setState(() => _currentPage = 0),
                     textInputAction: TextInputAction.search,
+                    style: const TextStyle(fontSize: 13, color: _ink),
                     decoration: InputDecoration(
-                      hintText: 'Cari nama, email, atau nomor telepon…',
-                      hintStyle: const TextStyle(color: _muted),
+                      hintText: 'Cari nama, email, atau nomor telepon...',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF8D9199),
+                        fontSize: 12,
+                      ),
                       prefixIcon: const Icon(
                         Icons.search_rounded,
-                        color: _muted,
+                        size: 18,
+                        color: Color(0xFF8D9199),
                       ),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 38),
                       suffixIcon: _searchController.text.isEmpty
                           ? null
                           : IconButton(
@@ -134,50 +129,44 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
                                 _searchController.clear();
                                 setState(() => _currentPage = 0);
                               },
-                              icon: const Icon(Icons.close_rounded),
+                              icon: const Icon(Icons.close_rounded, size: 18),
                             ),
                       filled: true,
-                      fillColor: const Color(0xFFEEF1F4),
+                      fillColor: _field,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       border: OutlineInputBorder(
                         borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
-                        child: SizedBox(
-                          height: 52,
-                          child: OutlinedButton.icon(
-                            key: const ValueKey('resident-status-filter'),
-                            onPressed: _selectFilter,
-                            icon: const Icon(Icons.filter_list_rounded),
-                            label: Text(_filterLabel),
-                            style: _secondaryButtonStyle,
-                          ),
+                        child: _ToolbarButton(
+                          key: const ValueKey('resident-status-filter'),
+                          icon: Icons.filter_list_rounded,
+                          label: _filterLabel,
+                          onPressed: _selectFilter,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: SizedBox(
-                          height: 52,
-                          child: OutlinedButton.icon(
-                            onPressed: state is AdminResidentsLoading
-                                ? null
-                                : context
-                                      .read<AdminResidentsCubit>()
-                                      .loadResidents,
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Muat Ulang'),
-                            style: _secondaryButtonStyle,
-                          ),
+                        child: _ToolbarButton(
+                          key: const ValueKey('reload-residents'),
+                          icon: Icons.refresh_rounded,
+                          label: 'Muat Ulang',
+                          onPressed: state is AdminResidentsLoading
+                              ? null
+                              : context
+                                    .read<AdminResidentsCubit>()
+                                    .loadResidents,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
                   switch (state) {
                     AdminResidentsLoading() => const _LoadingResidents(),
                     AdminResidentsLoadFailure(:final message) =>
@@ -193,7 +182,7 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
                       children: [
                         for (final resident in visibleResidents)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
+                            padding: const EdgeInsets.only(bottom: 10),
                             child: ResidentCard(
                               resident: resident,
                               updating: updatingIds.contains(resident.id),
@@ -211,18 +200,20 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
                     ),
                   },
                   if (state is AdminResidentsLoaded) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 2),
                     _PaginationPanel(
                       currentPage: currentPage,
                       pageCount: pageCount,
                       visibleCount: visibleResidents.length,
                       totalCount: filteredResidents.length,
-                      onPrevious: _currentPage == 0
+                      onPrevious: currentPage == 0
                           ? null
-                          : () => setState(() => _currentPage--),
-                      onNext: _currentPage >= pageCount - 1
+                          : () =>
+                                setState(() => _currentPage = currentPage - 1),
+                      onNext: currentPage >= pageCount - 1
                           ? null
-                          : () => setState(() => _currentPage++),
+                          : () =>
+                                setState(() => _currentPage = currentPage + 1),
                       onPageSelected: (page) =>
                           setState(() => _currentPage = page),
                     ),
@@ -272,15 +263,8 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
     return count == 0 ? 1 : count;
   }
 
-  ButtonStyle get _secondaryButtonStyle => OutlinedButton.styleFrom(
-    foregroundColor: _ink,
-    side: const BorderSide(color: Color(0xFFDDE2E8)),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-  );
-
   String get _filterLabel => switch (_filter) {
-    _ResidentFilter.all => 'Semua Status',
+    _ResidentFilter.all => 'Filter',
     _ResidentFilter.pending => 'Menunggu',
     _ResidentFilter.active => 'Aktif',
     _ResidentFilter.rejected => 'Ditolak',
@@ -291,6 +275,7 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
     final selected = await showModalBottomSheet<_ResidentFilter>(
       context: context,
       showDragHandle: true,
+      backgroundColor: Colors.white,
       builder: (context) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -336,6 +321,23 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
     }
   }
 
+  void _handleManagementAction(_ManagementAction action) {
+    if (action == _ManagementAction.events) {
+      context.router.push(const CreateEventRoute());
+      return;
+    }
+
+    final label = switch (action) {
+      _ManagementAction.addResident => 'Tambah warga',
+      _ManagementAction.announcements => 'Manajemen pengumuman',
+      _ManagementAction.providers => 'Manajemen provider',
+      _ManagementAction.pointStore => 'Manajemen toko poin',
+      _ManagementAction.events => 'Manajemen kegiatan',
+      _ManagementAction.rewards => 'Manajemen reward',
+    };
+    _showMessage('$label belum tersedia.');
+  }
+
   Future<void> _confirmStatusChange(
     Resident resident,
     ResidentStatus status,
@@ -375,23 +377,23 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
       status,
     );
     if (!success || !mounted) return;
+    _showMessage(
+      approving
+          ? '${resident.name} berhasil disetujui.'
+          : 'Pendaftaran ${resident.name} ditolak.',
+    );
+  }
+
+  void _showMessage(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            approving
-                ? '${resident.name} berhasil disetujui.'
-                : 'Pendaftaran ${resident.name} ditolak.',
-          ),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _resetFilters() {
     _searchController.clear();
     setState(() {
-      _filter = _ResidentFilter.pending;
+      _filter = _ResidentFilter.all;
       _currentPage = 0;
     });
   }
@@ -402,32 +404,29 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(12, 32, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Manajemen Warga',
-            style: TextStyle(
-              color: _AdminResidentsViewState._ink,
-              fontSize: 30,
-              height: 1.15,
-              letterSpacing: -0.4,
-              fontWeight: FontWeight.w700,
-            ),
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Manajemen Warga',
+          style: TextStyle(
+            color: _AdminResidentsViewState._ink,
+            fontSize: 25,
+            height: 1.2,
+            letterSpacing: -0.2,
+            fontWeight: FontWeight.w600,
           ),
-          SizedBox(height: 4),
-          Text(
-            'Tinjau pendaftaran dan kelola status warga.',
-            style: TextStyle(
-              color: Color(0xFF626262),
-              fontSize: 16,
-              height: 1.35,
-            ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          'RT 004 / RW 012 - Kelurahan Harmoni',
+          style: TextStyle(
+            color: _AdminResidentsViewState._muted,
+            fontSize: 12,
+            height: 1.2,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -446,49 +445,214 @@ class _Summary extends StatelessWidget {
               .where((resident) => resident.status == status)
               .length
               .toString();
+    final distributedPoints = residents.fold<int>(
+      0,
+      (total, resident) => total + resident.points,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE9EFFD),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ResidentSummaryTile(
+                  label: 'Total Warga',
+                  value: loading ? '—' : '${residents.length}',
+                  color: KompakColors.success,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ResidentSummaryTile(
+                  label: 'Menunggu',
+                  value: count(ResidentStatus.pending),
+                  color: KompakColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: ResidentSummaryTile(
+                  label: 'Warga Aktif',
+                  value: count(ResidentStatus.active),
+                  color: KompakColors.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ResidentSummaryTile(
+                  label: 'Total Saldo Poin',
+                  value: loading ? '—' : _compactNumber(distributedPoints),
+                  color: KompakColors.success,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _compactNumber(int value) {
+    if (value < 1000) return NumberFormat.decimalPattern('id_ID').format(value);
+    final tenths = (value + 50) ~/ 100;
+    final whole = tenths ~/ 10;
+    final decimal = tenths % 10;
+    return decimal == 0 ? '${whole}k' : '$whole.${decimal}k';
+  }
+}
+
+class _ManagementGrid extends StatelessWidget {
+  const _ManagementGrid({required this.onSelected});
+
+  final ValueChanged<_ManagementAction> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      (_ManagementAction.addResident, 'Tambah Warga', Icons.person_add_alt_1),
+      (_ManagementAction.announcements, 'Pengumuman', Icons.campaign_rounded),
+      (_ManagementAction.providers, 'Provider', Icons.groups_2_rounded),
+      (_ManagementAction.pointStore, 'Toko Poin', Icons.storefront_rounded),
+      (_ManagementAction.events, 'Kegiatan', Icons.event_available_rounded),
+      (_ManagementAction.rewards, 'Reward', Icons.stars_rounded),
+    ];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: ResidentSummaryTile(
-                label: 'Total Warga',
-                value: loading ? '—' : '${residents.length}',
-                color: _AdminResidentsViewState._green,
-              ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            'Manajemen',
+            style: TextStyle(
+              color: _AdminResidentsViewState._ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: ResidentSummaryTile(
-                label: 'Menunggu',
-                value: count(ResidentStatus.pending),
-                color: const Color(0xFFF79009),
-              ),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: ResidentSummaryTile(
-                label: 'Aktif',
-                value: count(ResidentStatus.active),
-                color: _AdminResidentsViewState._blue,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: ResidentSummaryTile(
-                label: 'Ditolak',
-                value: count(ResidentStatus.rejected),
-                color: const Color(0xFFD92D20),
-              ),
-            ),
-          ],
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            mainAxisExtent: 96,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final (action, label, icon) = items[index];
+            return _ManagementButton(
+              key: ValueKey('management-${action.name}'),
+              label: label,
+              icon: icon,
+              color: index.isEven ? KompakColors.success : KompakColors.primary,
+              onTap: () => onSelected(action),
+            );
+          },
         ),
       ],
+    );
+  }
+}
+
+class _ManagementButton extends StatelessWidget {
+  const _ManagementButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    super.key,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFF1F1F2)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: Icon(icon, size: 21, color: Colors.white),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _AdminResidentsViewState._ink,
+                  fontSize: 10,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ToolbarButton extends StatelessWidget {
+  const _ToolbarButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: _AdminResidentsViewState._ink,
+          side: const BorderSide(color: Color(0xFFF1F1F2)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+        icon: Icon(icon, size: 16),
+        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
     );
   }
 }
@@ -498,7 +662,7 @@ class _LoadingResidents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 48),
+    padding: EdgeInsets.symmetric(vertical: 40),
     child: Center(child: CircularProgressIndicator()),
   );
 }
@@ -511,22 +675,22 @@ class _ResidentsFailure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 40),
+    padding: const EdgeInsets.symmetric(vertical: 32),
     child: Column(
       children: [
-        const Icon(Icons.cloud_off_rounded, size: 44, color: Color(0xFF667085)),
-        const SizedBox(height: 12),
+        const Icon(Icons.cloud_off_rounded, size: 40, color: Color(0xFF667085)),
+        const SizedBox(height: 10),
         const Text(
           'Data warga tidak dapat dimuat',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
         Text(
           message,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Color(0xFF667085)),
+          style: const TextStyle(color: Color(0xFF667085), fontSize: 12),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
         FilledButton.tonal(
           key: const ValueKey('retry-residents'),
           onPressed: onRetry,
@@ -544,26 +708,26 @@ class _EmptyResidents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 36),
+    padding: const EdgeInsets.symmetric(vertical: 30),
     child: Column(
       children: [
         const Icon(
           Icons.person_search_outlined,
-          size: 42,
+          size: 40,
           color: Color(0xFF667085),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         const Text(
           'Warga tidak ditemukan',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         const Text(
           'Coba kata pencarian atau status yang berbeda.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF667085)),
+          style: TextStyle(color: Color(0xFF667085), fontSize: 12),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         TextButton(onPressed: onReset, child: const Text('Reset pencarian')),
       ],
     ),
@@ -597,64 +761,48 @@ class _PaginationPanel extends StatelessWidget {
       _ when currentPage == pageCount - 1 => [pageCount - 2, pageCount - 1],
       _ => [currentPage - 1, currentPage, currentPage + 1],
     };
-    final pageButtons = <Widget>[
-      _PageButton(
-        semanticLabel: 'Halaman sebelumnya',
-        onPressed: onPrevious,
-        child: const Icon(Icons.chevron_left_rounded),
-      ),
-      const SizedBox(width: 8),
-      for (final page in pageIndices) ...[
-        _PageButton(
-          semanticLabel: 'Halaman ${page + 1}',
-          selected: currentPage == page,
-          onPressed: () => onPageSelected(page),
-          child: Text('${page + 1}'),
-        ),
-        const SizedBox(width: 8),
-      ],
-      _PageButton(
-        semanticLabel: 'Halaman berikutnya',
-        onPressed: onNext,
-        child: const Icon(Icons.chevron_right_rounded),
-      ),
-    ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFFE3EDFF),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final label = Text(
-            'Menampilkan $visibleCount dari $totalCount warga',
-            style: const TextStyle(
-              color: Color(0xFF344054),
-              fontSize: 13,
-              height: 1.3,
-              fontWeight: FontWeight.w500,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Menampilkan $visibleCount dari $totalCount warga',
+              style: const TextStyle(
+                color: Color(0xFF344054),
+                fontSize: 10,
+                height: 1.2,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          );
-          final controls = Row(
-            mainAxisSize: MainAxisSize.min,
-            children: pageButtons,
-          );
-          if (constraints.maxWidth < 340) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [label, const SizedBox(height: 12), controls],
-            );
-          }
-          return Row(
-            children: [
-              Expanded(child: label),
-              const SizedBox(width: 12),
-              controls,
-            ],
-          );
-        },
+          ),
+          const SizedBox(width: 8),
+          _PageButton(
+            semanticLabel: 'Halaman sebelumnya',
+            onPressed: onPrevious,
+            child: const Icon(Icons.chevron_left_rounded, size: 18),
+          ),
+          for (final page in pageIndices) ...[
+            const SizedBox(width: 6),
+            _PageButton(
+              semanticLabel: 'Halaman ${page + 1}',
+              selected: currentPage == page,
+              onPressed: () => onPageSelected(page),
+              child: Text('${page + 1}'),
+            ),
+          ],
+          const SizedBox(width: 6),
+          _PageButton(
+            semanticLabel: 'Halaman berikutnya',
+            onPressed: onNext,
+            child: const Icon(Icons.chevron_right_rounded, size: 18),
+          ),
+        ],
       ),
     );
   }
@@ -678,20 +826,17 @@ class _PageButton extends StatelessWidget {
     label: semanticLabel,
     selected: selected,
     button: true,
-    child: SizedBox(
-      width: 42,
-      height: 44,
+    child: SizedBox.square(
+      dimension: 36,
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
           padding: EdgeInsets.zero,
           foregroundColor: selected ? Colors.white : const Color(0xFF27303A),
-          backgroundColor: selected ? const Color(0xFF10B96C) : Colors.white,
+          backgroundColor: selected ? KompakColors.success : Colors.white,
           disabledForegroundColor: const Color(0xFF98A2B3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(11),
-          ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
         ),
         child: child,
       ),
