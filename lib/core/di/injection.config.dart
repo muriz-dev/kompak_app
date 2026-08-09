@@ -15,6 +15,14 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
+import '../../features/admin/residents/data/datasources/admin_residents_remote_data_source.dart'
+    as _i592;
+import '../../features/admin/residents/data/repositories/admin_residents_repository_impl.dart'
+    as _i767;
+import '../../features/admin/residents/domain/repositories/admin_residents_repository.dart'
+    as _i943;
+import '../../features/admin/residents/presentation/bloc/admin_residents_cubit.dart'
+    as _i938;
 import '../../features/attendance/presentation/bloc/attendance_cubit.dart'
     as _i1;
 import '../../features/auth/data/datasources/auth_remote_data_source.dart'
@@ -79,6 +87,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i107.AuthRemoteDataSource>(
       () => _i107.AuthRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i592.AdminResidentsRemoteDataSource>(
+      () => _i592.AdminResidentsRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i787.AuthRepository>(
       () => _i153.AuthRepositoryImpl(
         gh<_i107.AuthRemoteDataSource>(),
@@ -99,6 +110,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i787.AuthRepository>(),
         gh<_i875.SessionInvalidationBus>(),
       ),
+    );
+    gh.lazySingleton<_i943.AdminResidentsRepository>(
+      () => _i767.AdminResidentsRepositoryImpl(
+        gh<_i592.AdminResidentsRemoteDataSource>(),
+      ),
+    );
+    gh.factory<_i938.AdminResidentsCubit>(
+      () => _i938.AdminResidentsCubit(gh<_i943.AdminResidentsRepository>()),
     );
     gh.singleton<_i629.AppRouter>(
       () => routerModule.appRouter(gh<_i371.SessionCubit>()),

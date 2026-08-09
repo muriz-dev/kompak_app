@@ -1,51 +1,263 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kompak_app/core/auth/session_invalidation_bus.dart';
+import 'package:kompak_app/core/auth/session_token_store.dart';
+import 'package:kompak_app/core/di/injection.dart';
+import 'package:kompak_app/core/network/dio_module.dart';
+import 'package:kompak_app/features/admin/residents/data/datasources/admin_residents_remote_data_source.dart';
+import 'package:kompak_app/features/admin/residents/data/repositories/admin_residents_repository_impl.dart';
+import 'package:kompak_app/features/admin/residents/presentation/bloc/admin_residents_cubit.dart';
 import 'package:kompak_app/features/admin/residents/presentation/pages/admin_residents_page.dart';
 
-void main() {
-  Widget buildPage() {
-    return const MaterialApp(home: AdminResidentsPage());
+class _MemoryTokenStore implements SessionTokenStore {
+  _MemoryTokenStore(this.token);
+
+  String? token;
+
+  @override
+  Future<void> clear() async => token = null;
+
+  @override
+  Future<String?> read() async => token;
+
+  @override
+  Future<void> write(String token) async => this.token = token;
+}
+
+class _TestDioModule extends DioModule {}
+
+class _ResidentsAdapter implements HttpClientAdapter {
+  _ResidentsAdapter({this.failReads = false});
+
+  bool failReads;
+  String? lastAuthorization;
+  final requests = <RequestOptions>[];
+  final residents = <Map<String, dynamic>>[
+    {
+      'id': 'pending-1',
+      'name': 'Budi Pratama',
+      'phoneNumber': '081234567890',
+      'birthDate': '1990-04-15',
+      'email': 'budi@example.com',
+      'balance': 1200,
+      'leaderboardPoints': 80,
+      'status': 'PENDING',
+      'role': 'CITIZEN',
+    },
+    {
+      'id': 'active-1',
+      'name': 'Siti Rahma',
+      'phoneNumber': '081298765432',
+      'birthDate': '1994-10-08',
+      'email': 'siti@example.com',
+      'balance': 850,
+      'leaderboardPoints': 55,
+      'status': 'ACTIVE',
+      'role': 'CITIZEN',
+    },
+    {
+      'id': 'rejected-1',
+      'name': 'Agus Mulyadi',
+      'phoneNumber': '081277788899',
+      'birthDate': '1988-01-20',
+      'email': 'agus@example.com',
+      'balance': 0,
+      'leaderboardPoints': 0,
+      'status': 'REJECTED',
+      'role': 'CITIZEN',
+    },
+  ];
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests.add(options);
+    lastAuthorization = options.headers['Authorization'] as String?;
+
+    if (options.method == 'GET' && options.path == '/users') {
+      if (failReads) {
+        return _jsonResponse({
+          'success': false,
+          'message': 'Server sedang bermasalah.',
+        }, 503);
+      }
+      return _jsonResponse({'success': true, 'data': residents}, 200);
+    }
+
+    final statusMatch = RegExp(
+      r'^/users/([^/]+)/status$',
+    ).firstMatch(options.path);
+    if (options.method == 'PATCH' && statusMatch != null) {
+      final id = statusMatch.group(1);
+      final requestData = Map<String, dynamic>.from(options.data as Map);
+      final resident = residents.firstWhere((item) => item['id'] == id);
+      resident['status'] = requestData['status'];
+      return _jsonResponse({'success': true, 'data': resident}, 200);
+    }
+
+    return _jsonResponse({'success': false, 'message': 'Not found'}, 404);
   }
 
-  testWidgets('shows the admin summary and first placeholder page', (
+  ResponseBody _jsonResponse(Map<String, dynamic> body, int statusCode) {
+    return ResponseBody.fromString(
+      jsonEncode(body),
+      statusCode,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+}
+
+void main() {
+  Future<_ResidentsAdapter> pumpPage(
+    WidgetTester tester, {
+    bool failReads = false,
+  }) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 1200);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await getIt.reset();
+    final adapter = _ResidentsAdapter(failReads: failReads);
+    final tokenStore = _MemoryTokenStore('admin-token');
+    final invalidationBus = SessionInvalidationBus();
+    final dio = _TestDioModule().dio(tokenStore, invalidationBus)
+      ..httpClientAdapter = adapter;
+    final repository = AdminResidentsRepositoryImpl(
+      AdminResidentsRemoteDataSourceImpl(dio),
+    );
+    getIt.registerFactory<AdminResidentsCubit>(
+      () => AdminResidentsCubit(repository),
+    );
+
+    addTearDown(() async {
+      invalidationBus.dispose();
+      await getIt.reset();
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: AdminResidentsPage()));
+    await tester.pumpAndSettle();
+    return adapter;
+  }
+
+  testWidgets('loads real residents and opens the pending queue first', (
     tester,
   ) async {
-    await tester.pumpWidget(buildPage());
+    final adapter = await pumpPage(tester);
 
     expect(find.text('Manajemen Warga'), findsOneWidget);
     expect(find.text('Total Warga'), findsOneWidget);
-    expect(find.text('482'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
     expect(find.text('Budi Pratama'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Dewi Wijaya'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Dewi Wijaya'), findsOneWidget);
-    expect(find.text('Nur Aisyah'), findsNothing);
+    expect(find.text('Siti Rahma'), findsNothing);
+    expect(adapter.requests.single.method, 'GET');
+    expect(adapter.requests.single.path, '/users');
+    expect(adapter.lastAuthorization, 'Bearer admin-token');
   });
 
-  testWidgets('searches the placeholder resident list', (tester) async {
-    await tester.pumpWidget(buildPage());
+  testWidgets('searches the server-backed pending resident list', (
+    tester,
+  ) async {
+    await pumpPage(tester);
 
-    await tester.enterText(find.byType(TextField), 'Agus');
+    await tester.enterText(find.byType(TextField), 'tidak ada');
     await tester.pump();
 
-    expect(find.text('Agus Mulyadi'), findsOneWidget);
+    expect(find.text('Warga tidak ditemukan'), findsOneWidget);
+    expect(find.text('Budi Pratama'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'budi@example.com');
+    await tester.pump();
+
+    expect(find.text('Budi Pratama'), findsOneWidget);
+  });
+
+  testWidgets('filters residents by their API status', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const ValueKey('resident-status-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Aktif').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Siti Rahma'), findsOneWidget);
     expect(find.text('Budi Pratama'), findsNothing);
   });
 
-  testWidgets('filters residents by inactive status', (tester) async {
-    await tester.pumpWidget(buildPage());
+  testWidgets('approves a pending resident through the status API', (
+    tester,
+  ) async {
+    final adapter = await pumpPage(tester);
 
-    await tester.ensureVisible(find.text('Filter'));
-    await tester.tap(find.text('Filter'));
+    final approve = find.byKey(const ValueKey('approve-pending-1'));
+    await tester.ensureVisible(approve);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Tidak Aktif').last);
+    await tester.tap(approve);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('confirm-ACTIVE-pending-1')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Agus Mulyadi'), findsOneWidget);
-    expect(find.text('Lina Setiawati'), findsOneWidget);
+    final patch = adapter.requests.last;
+    expect(patch.method, 'PATCH');
+    expect(patch.path, '/users/pending-1/status');
+    expect(patch.data, {'status': 'ACTIVE'});
+    expect(find.text('Budi Pratama berhasil disetujui.'), findsOneWidget);
     expect(find.text('Budi Pratama'), findsNothing);
+    expect(find.text('Warga tidak ditemukan'), findsOneWidget);
+  });
+
+  testWidgets('rejects a pending resident through the status API', (
+    tester,
+  ) async {
+    final adapter = await pumpPage(tester);
+
+    final reject = find.byKey(const ValueKey('reject-pending-1'));
+    await tester.ensureVisible(reject);
+    await tester.pumpAndSettle();
+    await tester.tap(reject);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('confirm-REJECTED-pending-1')));
+    await tester.pumpAndSettle();
+
+    final patch = adapter.requests.last;
+    expect(patch.method, 'PATCH');
+    expect(patch.path, '/users/pending-1/status');
+    expect(patch.data, {'status': 'REJECTED'});
+    expect(find.text('Pendaftaran Budi Pratama ditolak.'), findsOneWidget);
+    expect(find.text('Budi Pratama'), findsNothing);
+  });
+
+  testWidgets('shows a retry state when residents cannot be loaded', (
+    tester,
+  ) async {
+    final adapter = await pumpPage(tester, failReads: true);
+
+    expect(find.text('Data warga tidak dapat dimuat'), findsOneWidget);
+    expect(find.text('Server sedang bermasalah.'), findsOneWidget);
+
+    adapter.failReads = false;
+    final retry = find.byKey(const ValueKey('retry-residents'));
+    await tester.ensureVisible(retry);
+    await tester.pumpAndSettle();
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Budi Pratama'), findsOneWidget);
+    expect(
+      adapter.requests.where((request) => request.method == 'GET').length,
+      2,
+    );
   });
 }
