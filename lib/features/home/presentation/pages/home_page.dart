@@ -36,6 +36,8 @@ class HomePage extends StatelessWidget {
                 onNotificationTap: () =>
                     context.router.push(const NotificationRoute()),
                 onProfileTap: () => context.router.push(const ProfileRoute()),
+                onAdminPreviewTap: () =>
+                    context.router.push(const AdminResidentsRoute()),
                 onRedeemTap: () => AutoTabsRouter.of(context).setActiveIndex(2),
                 onViewAllActivities: () =>
                     AutoTabsRouter.of(context).setActiveIndex(1),
@@ -73,6 +75,7 @@ class HomeDashboardView extends StatelessWidget {
     required this.announcements,
     required this.onNotificationTap,
     required this.onProfileTap,
+    required this.onAdminPreviewTap,
     required this.onRedeemTap,
     required this.onViewAllActivities,
     required this.onActivityReminder,
@@ -84,6 +87,7 @@ class HomeDashboardView extends StatelessWidget {
   final List<Announcement> announcements;
   final VoidCallback onNotificationTap;
   final VoidCallback onProfileTap;
+  final VoidCallback onAdminPreviewTap;
   final VoidCallback onRedeemTap;
   final VoidCallback onViewAllActivities;
   final ValueChanged<UpcomingActivity> onActivityReminder;
@@ -124,7 +128,28 @@ class HomeDashboardView extends StatelessWidget {
                 fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                key: const ValueKey('home-admin-preview-button'),
+                onPressed: onAdminPreviewTap,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _homeBlue,
+                  side: const BorderSide(color: Color(0xFFB9CCFA)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.admin_panel_settings_outlined, size: 20),
+                label: const Text(
+                  'Buka pratinjau admin',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             PointsCard(userSummary: userSummary, onRedeemTap: onRedeemTap),
             const SizedBox(height: 28),
             _SectionHeader(

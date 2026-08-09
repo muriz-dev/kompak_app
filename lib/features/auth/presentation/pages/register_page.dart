@@ -13,6 +13,7 @@ import '../../data/models/registration_receipt.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../widgets/face_scanner_overlay.dart';
 
 @RoutePage()
 class RegisterPage extends StatefulWidget {
@@ -536,30 +537,34 @@ class _RegisterPageState extends State<RegisterPage> {
                     'Pemindaian Wajah',
                     style: TextStyle(
                       color: KompakColors.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Pastikan wajah Anda berada di dalam frame dan pencahayaan cukup.',
+                    'Pastikan wajah Anda berada di dalam\narea frame dan pencahayaan cukup.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    style: TextStyle(
+                      color: Color(0xFF68696A),
+                      fontSize: 16,
+                      height: 1.25,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Container(
-                    height: 400,
+                    height: 440,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: KompakColors.primarySurface,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: KompakColors.primaryBorder,
+                        color: KompakColors.scannerBorder,
                         width: 4,
                       ),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       child: _buildCameraContent(),
                     ),
                   ),
@@ -570,14 +575,18 @@ class _RegisterPageState extends State<RegisterPage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              style: _primaryButtonStyle(),
+              style: _primaryButtonStyle().copyWith(
+                padding: const WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(vertical: 11),
+                ),
+              ),
               onPressed: _isCameraInitialized ? _startScanning : null,
               child: const Text(
-                'Ambil Foto Wajah',
+                'Mulai Memindai',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
@@ -595,7 +604,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildCameraContent() {
     if (_isCameraInitialized && _cameraController != null) {
-      return SizedBox.expand(child: CameraPreview(_cameraController!));
+      return FaceScannerOverlay(
+        child: SizedBox.expand(child: CameraPreview(_cameraController!)),
+      );
     }
     if (_cameraError != null) {
       return Center(
