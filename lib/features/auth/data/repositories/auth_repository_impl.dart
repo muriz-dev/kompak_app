@@ -4,6 +4,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
+import '../models/registration_receipt.dart';
 
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
@@ -15,7 +16,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> login(LoginRequest request) async {
     final data = await _remoteDataSource.login(request);
-    
+
     final token = data['token'] as String?;
     if (token != null) {
       await _prefs.setString('jwt_token', token);
@@ -25,12 +26,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> register(RegisterRequest request) async {
-    final data = await _remoteDataSource.register(request);
-    final token = data['token'] as String?;
-    if (token != null) {
-      await _prefs.setString('jwt_token', token);
-    }
+  Future<RegistrationReceipt> register(RegisterRequest request) {
+    return _remoteDataSource.register(request);
   }
 
   @override

@@ -11,10 +11,7 @@ abstract class DioModule {
         baseUrl: 'https://kompak-api.muriz.workers.dev',
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: {'Accept': 'application/json'},
       ),
     );
 
@@ -41,7 +38,7 @@ abstract class DioModule {
     );
 
     dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true, error: true),
+      LogInterceptor(requestBody: false, responseBody: false, error: true),
     );
 
     return dio;

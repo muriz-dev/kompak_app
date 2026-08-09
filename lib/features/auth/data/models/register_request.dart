@@ -1,21 +1,25 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'register_request.g.dart';
-
-@JsonSerializable()
 class RegisterRequest {
   final String name;
+  final String phoneNumber;
   final String email;
+  final String birthDate;
   final String password;
-  final String faceEmbeddingId;
+  final String faceImagePath;
 
   const RegisterRequest({
     required this.name,
+    required this.phoneNumber,
     required this.email,
+    required this.birthDate,
     required this.password,
-    required this.faceEmbeddingId,
+    required this.faceImagePath,
   });
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
+  Map<String, String> toFields() => {
+    'name': name,
+    'phoneNumber': phoneNumber,
+    'email': email,
+    'birthDate': birthDate,
+    'password': password,
+  };
 }
