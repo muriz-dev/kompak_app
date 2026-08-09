@@ -9,11 +9,11 @@ import 'package:intl/intl.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/register_request.dart';
-import '../../data/models/registration_receipt.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../widgets/face_scanner_overlay.dart';
+import '../widgets/registration_success_dialog.dart';
 
 @RoutePage()
 class RegisterPage extends StatefulWidget {
@@ -37,6 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmation = true;
   bool _submitted = false;
+  bool _successDialogVisible = false;
   Map<String, String> _serverFieldErrors = const {};
 
   CameraController? _cameraController;
@@ -233,6 +234,25 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
+  Future<void> _showRegistrationSuccessDialog() async {
+    if (_successDialogVisible || !mounted) return;
+    _successDialogVisible = true;
+
+    final loginNow = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: const Color(0xE62F3236),
+      builder: (dialogContext) => RegistrationSuccessDialog(
+        onLogin: () => Navigator.of(dialogContext).pop(true),
+      ),
+    );
+
+    _successDialogVisible = false;
+    if (loginNow == true && mounted) {
+      context.router.back();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -270,6 +290,7 @@ class _RegisterPageState extends State<RegisterPage> {
           listener: (context, state) {
             if (state is RegisterSuccess) {
               setState(() => _submitted = true);
+              _showRegistrationSuccessDialog();
             } else if (state is AuthError) {
               const personalFields = {
                 'name',
@@ -307,10 +328,6 @@ class _RegisterPageState extends State<RegisterPage> {
             }
           },
           builder: (context, state) {
-            if (_submitted && state is RegisterSuccess) {
-              return _buildSuccessStep(state.receipt);
-            }
-
             return Column(
               children: [
                 _buildStepper(),
@@ -734,77 +751,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSuccessStep(RegistrationReceipt receipt) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F0FF),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.hourglass_top_rounded,
-                size: 44,
-                color: KompakColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Pendaftaran Terkirim',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Akun Anda sedang menunggu persetujuan admin. Anda dapat masuk setelah akun disetujui.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF4D6),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                receipt.status == 'PENDING'
-                    ? 'Menunggu persetujuan'
-                    : receipt.status,
-                style: const TextStyle(
-                  color: Color(0xFF8A5A00),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: _primaryButtonStyle(),
-                onPressed: () => context.router.back(),
-                child: const Text(
-                  'Kembali ke Login',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:kompak_app/features/auth/domain/repositories/auth_repository.dar
 import 'package:kompak_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:kompak_app/features/auth/domain/usecases/register_usecase.dart';
 import 'package:kompak_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:kompak_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:kompak_app/features/auth/presentation/pages/register_page.dart';
 
 class _FakeAuthRepository implements AuthRepository {
@@ -33,17 +34,19 @@ class _FakeAuthRepository implements AuthRepository {
 
 void main() {
   late _FakeAuthRepository repository;
+  late AuthBloc authBloc;
 
   setUp(() async {
     await getIt.reset();
     repository = _FakeAuthRepository();
-    getIt.registerFactory<AuthBloc>(
-      () => AuthBloc(
+    getIt.registerFactory<AuthBloc>(() {
+      authBloc = AuthBloc(
         LoginUseCase(repository),
         RegisterUseCase(repository),
         repository,
-      ),
-    );
+      );
+      return authBloc;
+    });
   });
 
   tearDown(() async {
@@ -84,4 +87,33 @@ void main() {
       expect(find.text('Pemindaian Wajah'), findsNothing);
     },
   );
+
+  testWidgets('shows registration success as the Figma modal', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light, home: const RegisterPage()),
+    );
+
+    authBloc.add(
+      const RegisterSubmitted(
+        RegisterRequest(
+          name: 'Subowo',
+          phoneNumber: '081234567890',
+          email: 'subowo@example.com',
+          birthDate: '1996-06-06',
+          password: 'password',
+          faceImagePath: '/tmp/face.jpg',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('registration-success-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('Berhasil Terdaftar'), findsOneWidget);
+    expect(find.text('Login Sekarang'), findsOneWidget);
+    expect(find.text('Pendaftaran Terkirim'), findsNothing);
+    expect(find.text('Menunggu persetujuan'), findsNothing);
+  });
 }

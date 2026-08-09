@@ -8,6 +8,8 @@ abstract final class KompakColors {
   static const primaryBorder = Color(0xFF8BA6FF);
   static const scannerBorder = Color(0xFFBBCFF9);
   static const scannerGuide = Color(0xFF5182EF);
+  static const success = Color(0xFF12B76A);
+  static const successSurface = Color(0xFFE7F8F0);
   static const surface = Colors.white;
   static const ink = Color(0xFF20242C);
   static const mutedInk = Color(0xFF5F6672);
