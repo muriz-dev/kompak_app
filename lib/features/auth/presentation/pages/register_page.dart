@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../data/models/register_request.dart';
 import '../../data/models/registration_receipt.dart';
 import '../bloc/auth_bloc.dart';
@@ -340,7 +341,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Container(
               height: 6,
               decoration: BoxDecoration(
-                color: const Color(0xFF2563EB),
+                color: KompakColors.primary,
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -351,7 +352,7 @@ class _RegisterPageState extends State<RegisterPage> {
               height: 6,
               decoration: BoxDecoration(
                 color: _currentStep >= 1
-                    ? const Color(0xFF2563EB)
+                    ? KompakColors.primary
                     : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(3),
               ),
@@ -379,7 +380,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: Text(
                         'Data Diri & Verifikasi',
                         style: TextStyle(
-                          color: Color(0xFF2563EB),
+                          color: KompakColors.primary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -534,7 +535,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const Text(
                     'Pemindaian Wajah',
                     style: TextStyle(
-                      color: Color(0xFF2563EB),
+                      color: KompakColors.primary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -550,10 +551,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 400,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: KompakColors.primarySurface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF8BA6FF),
+                        color: KompakColors.primaryBorder,
                         width: 4,
                       ),
                     ),
@@ -617,7 +618,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
     }
     return const Center(
-      child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+      child: CircularProgressIndicator(color: KompakColors.primary),
     );
   }
 
@@ -634,7 +635,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const Text(
                     'Pemindaian Wajah Selesai',
                     style: TextStyle(
-                      color: Color(0xFF2563EB),
+                      color: KompakColors.primary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -652,10 +653,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF2563EB),
-                        width: 4,
-                      ),
+                      border: Border.all(color: KompakColors.primary, width: 4),
                     ),
                     child: _capturedImage != null
                         ? ClipRRect(
@@ -691,7 +689,7 @@ class _RegisterPageState extends State<RegisterPage> {
           if (state is AuthLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+              child: CircularProgressIndicator(color: KompakColors.primary),
             )
           else
             SizedBox(
@@ -746,7 +744,7 @@ class _RegisterPageState extends State<RegisterPage> {
               child: const Icon(
                 Icons.hourglass_top_rounded,
                 size: 44,
-                color: Color(0xFF2563EB),
+                color: KompakColors.primary,
               ),
             ),
             const SizedBox(height: 24),
@@ -849,7 +847,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF2563EB)),
+              borderSide: const BorderSide(color: KompakColors.primary),
             ),
           ),
         ),
@@ -888,8 +886,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   ButtonStyle _primaryButtonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF2563EB),
-      disabledBackgroundColor: const Color(0xFFAFC4F9),
+      backgroundColor: KompakColors.primary,
+      disabledBackgroundColor: KompakColors.primaryDisabled,
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );

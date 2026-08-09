@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kompak_app/core/di/injection.dart';
+import 'package:kompak_app/core/theme/app_theme.dart';
 import 'package:kompak_app/features/auth/data/models/login_request.dart';
 import 'package:kompak_app/features/auth/data/models/register_request.dart';
 import 'package:kompak_app/features/auth/data/models/registration_receipt.dart';
@@ -52,7 +53,9 @@ void main() {
   testWidgets('shows the agreed personal data fields without address', (
     tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light, home: const RegisterPage()),
+    );
 
     expect(find.text('Nama Lengkap'), findsOneWidget);
     expect(find.text('Nomor WhatsApp'), findsOneWidget);
@@ -67,7 +70,9 @@ void main() {
   testWidgets(
     'keeps the user on personal data when required fields are empty',
     (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+      await tester.pumpWidget(
+        MaterialApp(theme: AppTheme.light, home: const RegisterPage()),
+      );
 
       await tester.tap(find.text('Lanjut ke pemindaian wajah'));
       await tester.pump();
