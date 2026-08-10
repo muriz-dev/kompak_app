@@ -118,16 +118,26 @@ class OngoingEventCard extends StatelessWidget {
             child: Column(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.stars, color: Colors.orange, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '+${event.points} Pts',
-                      style: const TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    TextButton.icon(
+                      key: ValueKey('ongoing-event-detail-${event.id}'),
+                      onPressed: onDetailTap,
+                      icon: const Icon(Icons.info_outline_rounded, size: 18),
+                      label: const Text('Lihat Detail'),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.stars, color: Colors.orange, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '+${event.points} Pts',
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

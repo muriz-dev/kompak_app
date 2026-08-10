@@ -107,7 +107,7 @@ class AttendancePage extends StatelessWidget {
                       if (state.ongoingEvent != null)
                         OngoingEventCard(
                           event: state.ongoingEvent!,
-                          onDetailTap: () => context.router.push(
+                          onDetailTap: () => context.router.root.push(
                             ActivityDetailRoute(
                               eventId: state.ongoingEvent!.id,
                             ),
@@ -148,7 +148,7 @@ class AttendancePage extends StatelessWidget {
                             final event = state.upcomingEvents[index];
                             return UpcomingEventListTile(
                               event: event,
-                              onDetailTap: () => context.router.push(
+                              onDetailTap: () => context.router.root.push(
                                 ActivityDetailRoute(eventId: event.id),
                               ),
                             );
