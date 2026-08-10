@@ -11,7 +11,6 @@ void main() {
           email: 'olivia@example.com',
           canAccessAdmin: canAccessAdmin,
           onOpenProfile: () {},
-          onOpenSettings: () {},
           onSwitchAdmin: () {},
           onSwitchProvider: () {},
           onLogout: () {},
@@ -26,6 +25,7 @@ void main() {
     await tester.pumpWidget(buildSheet(canAccessAdmin: true));
 
     expect(find.text('Akun Warga'), findsOneWidget);
+    expect(find.text('Pengaturan'), findsNothing);
     expect(find.text('Beralih ke Admin'), findsOneWidget);
     expect(find.text('Beralih ke akun UMKM'), findsOneWidget);
     expect(find.text('Log out'), findsOneWidget);

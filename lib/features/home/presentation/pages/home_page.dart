@@ -103,10 +103,6 @@ class HomePage extends StatelessWidget {
               Navigator.of(dialogContext).pop();
               router.push(const ProfileRoute());
             },
-            onOpenSettings: () {
-              Navigator.of(dialogContext).pop();
-              router.push(const ProfileRoute());
-            },
             onSwitchAdmin: () {
               Navigator.of(dialogContext).pop();
               router.replaceAll([const AdminResidentsRoute()]);

@@ -9,7 +9,6 @@ class ProfileModeSheet extends StatelessWidget {
     required this.email,
     required this.canAccessAdmin,
     required this.onOpenProfile,
-    required this.onOpenSettings,
     required this.onSwitchAdmin,
     required this.onSwitchProvider,
     required this.onLogout,
@@ -19,7 +18,6 @@ class ProfileModeSheet extends StatelessWidget {
   final String email;
   final bool canAccessAdmin;
   final VoidCallback onOpenProfile;
-  final VoidCallback onOpenSettings;
   final VoidCallback onSwitchAdmin;
   final VoidCallback onSwitchProvider;
   final VoidCallback onLogout;
@@ -38,12 +36,6 @@ class ProfileModeSheet extends StatelessWidget {
           children: [
             _AccountRow(name: name, email: email, onTap: onOpenProfile),
             const _SheetDivider(),
-            _SheetAction(
-              key: const ValueKey('profile-sheet-settings'),
-              icon: Icons.settings_outlined,
-              label: 'Pengaturan',
-              onTap: onOpenSettings,
-            ),
             if (canAccessAdmin)
               _SheetAction(
                 key: const ValueKey('profile-sheet-admin-mode'),
