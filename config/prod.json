@@ -1,3 +1,6 @@
 {
-  "API_BASE_URL": "https://kompak-api.muriz.workers.dev"
+  "API_BASE_URL": "https://kompak-api.muriz.workers.dev",
+  "MAP_TILE_URL": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "MAP_ATTRIBUTION": "© OpenStreetMap contributors",
+  "MAP_USER_AGENT_PACKAGE_NAME": "com.example.kompak_app"
 }

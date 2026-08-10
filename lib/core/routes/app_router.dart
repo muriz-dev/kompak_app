@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import '../../features/admin/residents/presentation/pages/admin_residents_page.dart';
 import '../../features/admin/events/presentation/pages/admin_events_page.dart';
 import '../../features/admin/events/presentation/pages/create_event_page.dart';
+import '../../features/admin/events/presentation/pages/event_location_picker_page.dart';
+import '../../features/admin/events/data/services/event_location_service.dart';
+import '../../features/admin/events/domain/entities/event_location_selection.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
@@ -65,6 +68,11 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: CreateEventRoute.page,
       path: '/admin/events/create',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: EventLocationPickerRoute.page,
+      path: '/admin/events/create/location',
       guards: [_adminSessionGuard],
     ),
     AutoRoute(

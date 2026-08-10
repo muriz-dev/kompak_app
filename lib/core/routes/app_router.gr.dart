@@ -92,18 +92,133 @@ class BlockedAccountRoute extends PageRouteInfo<void> {
 
 /// generated route for
 /// [CreateEventPage]
-class CreateEventRoute extends PageRouteInfo<void> {
-  const CreateEventRoute({List<PageRouteInfo>? children})
-    : super(CreateEventRoute.name, initialChildren: children);
+class CreateEventRoute extends PageRouteInfo<CreateEventRouteArgs> {
+  CreateEventRoute({
+    Key? key,
+    EventLocationSelection? initialLocation,
+    List<PageRouteInfo>? children,
+  }) : super(
+         CreateEventRoute.name,
+         args: CreateEventRouteArgs(key: key, initialLocation: initialLocation),
+         initialChildren: children,
+       );
 
   static const String name = 'CreateEventRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const CreateEventPage();
+      final args = data.argsAs<CreateEventRouteArgs>(
+        orElse: () => const CreateEventRouteArgs(),
+      );
+      return CreateEventPage(
+        key: args.key,
+        initialLocation: args.initialLocation,
+      );
     },
   );
+}
+
+class CreateEventRouteArgs {
+  const CreateEventRouteArgs({this.key, this.initialLocation});
+
+  final Key? key;
+
+  final EventLocationSelection? initialLocation;
+
+  @override
+  String toString() {
+    return 'CreateEventRouteArgs{key: $key, initialLocation: $initialLocation}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! CreateEventRouteArgs) return false;
+    return key == other.key && initialLocation == other.initialLocation;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ initialLocation.hashCode;
+}
+
+/// generated route for
+/// [EventLocationPickerPage]
+class EventLocationPickerRoute
+    extends PageRouteInfo<EventLocationPickerRouteArgs> {
+  EventLocationPickerRoute({
+    Key? key,
+    double? initialLatitude,
+    double? initialLongitude,
+    EventLocationService locationService =
+        const GeolocatorEventLocationService(),
+    List<PageRouteInfo>? children,
+  }) : super(
+         EventLocationPickerRoute.name,
+         args: EventLocationPickerRouteArgs(
+           key: key,
+           initialLatitude: initialLatitude,
+           initialLongitude: initialLongitude,
+           locationService: locationService,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'EventLocationPickerRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<EventLocationPickerRouteArgs>(
+        orElse: () => const EventLocationPickerRouteArgs(),
+      );
+      return EventLocationPickerPage(
+        key: args.key,
+        initialLatitude: args.initialLatitude,
+        initialLongitude: args.initialLongitude,
+        locationService: args.locationService,
+      );
+    },
+  );
+}
+
+class EventLocationPickerRouteArgs {
+  const EventLocationPickerRouteArgs({
+    this.key,
+    this.initialLatitude,
+    this.initialLongitude,
+    this.locationService = const GeolocatorEventLocationService(),
+  });
+
+  final Key? key;
+
+  final double? initialLatitude;
+
+  final double? initialLongitude;
+
+  final EventLocationService locationService;
+
+  @override
+  String toString() {
+    return 'EventLocationPickerRouteArgs{key: $key, initialLatitude: $initialLatitude, initialLongitude: $initialLongitude, locationService: $locationService}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! EventLocationPickerRouteArgs) return false;
+    return key == other.key &&
+        initialLatitude == other.initialLatitude &&
+        initialLongitude == other.initialLongitude &&
+        locationService == other.locationService;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      initialLatitude.hashCode ^
+      initialLongitude.hashCode ^
+      locationService.hashCode;
 }
 
 /// generated route for

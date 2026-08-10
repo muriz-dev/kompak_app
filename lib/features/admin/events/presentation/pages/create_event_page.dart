@@ -2,30 +2,45 @@ import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../core/di/injection.dart';
+import '../../../../../core/routes/app_router.dart';
+import '../../domain/entities/create_admin_event_request.dart';
+import '../../domain/entities/event_location_selection.dart';
+import '../bloc/create_event_cubit.dart';
+import '../bloc/create_event_state.dart';
 import '../widgets/event_form_widgets.dart';
 import '../widgets/event_success_dialog.dart';
+import '../widgets/event_time_range_sheet.dart';
 
 @RoutePage()
-class CreateEventPage extends StatefulWidget {
-  const CreateEventPage({super.key});
+class CreateEventPage extends StatelessWidget {
+  const CreateEventPage({super.key, this.initialLocation});
+
+  final EventLocationSelection? initialLocation;
 
   @override
-  State<CreateEventPage> createState() => _CreateEventPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<CreateEventCubit>(),
+      child: CreateEventView(initialLocation: initialLocation),
+    );
+  }
 }
 
-class _CreateEventPageState extends State<CreateEventPage> {
-  static const _categories = [
-    'Kerja Bakti',
-    'Rapat Warga',
-    'Kesehatan',
-    'Keamanan',
-    'Sosial',
-    'Lainnya',
-  ];
+class CreateEventView extends StatefulWidget {
+  const CreateEventView({super.key, this.initialLocation});
 
+  final EventLocationSelection? initialLocation;
+
+  @override
+  State<CreateEventView> createState() => _CreateEventViewState();
+}
+
+class _CreateEventViewState extends State<CreateEventView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _detailController = TextEditingController();
@@ -36,15 +51,21 @@ class _CreateEventPageState extends State<CreateEventPage> {
   final _scrollController = ScrollController();
   final _imagePicker = ImagePicker();
 
-  String? _category;
   DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
+  EventTimeRange? _selectedTimeRange;
   Uint8List? _posterBytes;
   String? _posterName;
   String? _posterError;
-  bool _faceRecognition = false;
-  bool _requiresPhoto = false;
-  bool _isPublishing = false;
+  EventLocationSelection? _selectedLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLocation = widget.initialLocation;
+    if (_selectedLocation case final location?) {
+      _locationController.text = _locationLabel(location);
+    }
+  }
 
   @override
   void dispose() {
@@ -60,71 +81,77 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(24, 10, 24, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'POSTER KEGIATAN',
-                        style: TextStyle(
-                          color: eventFormInk,
-                          fontSize: 14,
-                          letterSpacing: 0.2,
-                          fontWeight: FontWeight.w700,
-                        ),
+    return BlocConsumer<CreateEventCubit, CreateEventState>(
+      listener: _onCreateEventState,
+      builder: (context, state) {
+        final isPublishing = state is CreateEventSubmitting;
+        return Scaffold(
+          backgroundColor: const Color(0xFFFEFFFF),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'POSTER KEGIATAN',
+                            style: TextStyle(
+                              color: eventFormInk,
+                              fontSize: 13,
+                              letterSpacing: 0.2,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          EventPosterPicker(
+                            imageBytes: _posterBytes,
+                            fileName: _posterName,
+                            errorText: _posterError,
+                            onPick: _pickPoster,
+                            onRemove: _removePoster,
+                          ),
+                          const SizedBox(height: 24),
+                          EventFormSection(child: _buildMainFields()),
+                          const SizedBox(height: 24),
+                          EventFormSection(child: _buildScheduleFields()),
+                          const SizedBox(height: 24),
+                          EventFormSection(child: _buildRewardFields()),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      EventPosterPicker(
-                        imageBytes: _posterBytes,
-                        fileName: _posterName,
-                        errorText: _posterError,
-                        onPick: _pickPoster,
-                        onRemove: _removePoster,
-                      ),
-                      const SizedBox(height: 28),
-                      EventFormSection(child: _buildMainFields()),
-                      const SizedBox(height: 24),
-                      EventFormSection(child: _buildScheduleFields()),
-                      const SizedBox(height: 24),
-                      EventFormSection(child: _buildRewardFields()),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                _buildPublishBar(isPublishing),
+              ],
             ),
-            _buildPublishBar(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildHeader(BuildContext context) {
     return SizedBox(
-      height: 68,
+      height: 64,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsets.only(left: 16),
+              padding: const EdgeInsets.only(left: 8),
               child: IconButton(
                 tooltip: 'Kembali',
                 onPressed: () => context.router.maybePop(),
-                iconSize: 30,
+                iconSize: 28,
                 color: eventFormInk,
                 icon: const Icon(Icons.chevron_left_rounded),
               ),
@@ -138,8 +165,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: eventFormInk,
-                fontSize: 21,
-                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -166,38 +193,18 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 : null,
           ),
         ),
-        const SizedBox(height: 20),
-        EventFieldLabel(
-          label: 'Kategori',
-          child: DropdownButtonFormField<String>(
-            key: const ValueKey('event-category-field'),
-            initialValue: _category,
-            isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded),
-            decoration: eventInputDecoration(hintText: 'Pilih Kategori'),
-            items: _categories
-                .map(
-                  (category) =>
-                      DropdownMenuItem(value: category, child: Text(category)),
-                )
-                .toList(),
-            onChanged: (value) => setState(() => _category = value),
-            validator: (value) =>
-                value == null ? 'Pilih kategori kegiatan.' : null,
-          ),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         EventFieldLabel(
           label: 'Detail Kegiatan',
           child: TextFormField(
             key: const ValueKey('event-detail-field'),
             controller: _detailController,
-            minLines: 4,
-            maxLines: 6,
+            minLines: 3,
+            maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
             decoration: eventInputDecoration(
               hintText:
-                  'Jelaskan detail kegiatan, perlengkapan yang dibawa, dll…',
+                  'Jelaskan detail kegiatan, perlengkapan yang dibawa, dll...',
             ),
             validator: (value) => value == null || value.trim().isEmpty
                 ? 'Jelaskan detail kegiatan.'
@@ -236,34 +243,45 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   key: const ValueKey('event-time-field'),
                   controller: _timeController,
                   readOnly: true,
-                  onTap: _selectTime,
+                  onTap: _selectTimeRange,
                   decoration: eventInputDecoration(hintText: '--:-- --'),
-                  validator: (_) =>
-                      _selectedTime == null ? 'Pilih waktu kegiatan.' : null,
+                  validator: (_) => _selectedTimeRange == null
+                      ? 'Pilih waktu kegiatan.'
+                      : null,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         EventFieldLabel(
           label: 'Lokasi',
           child: TextFormField(
             key: const ValueKey('event-location-field'),
             controller: _locationController,
-            textCapitalization: TextCapitalization.words,
-            textInputAction: TextInputAction.next,
+            readOnly: true,
+            onTap: _selectLocation,
             decoration: eventInputDecoration(
-              hintText: 'Masukkan lokasi kegiatan',
+              hintText: 'Pilih lokasi kegiatan',
               prefixIcon: const Icon(
                 Icons.location_on_outlined,
                 color: eventFormMuted,
               ),
+              suffixIcon: const Icon(
+                Icons.chevron_right_rounded,
+                color: eventFormMuted,
+              ),
             ),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? 'Masukkan lokasi kegiatan.'
+            validator: (_) => _selectedLocation == null
+                ? 'Pilih titik lokasi kegiatan.'
                 : null,
           ),
+        ),
+        const SizedBox(height: 12),
+        EventLocationMapPreview(
+          onTap: _selectLocation,
+          latitude: _selectedLocation?.latitude,
+          longitude: _selectedLocation?.longitude,
         ),
       ],
     );
@@ -279,22 +297,22 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 'Alokasi Poin',
                 style: TextStyle(
                   color: eventFormInk,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.auto_awesome, size: 18, color: eventFormBlue),
+                Icon(Icons.auto_awesome, size: 16, color: eventFormBlue),
                 SizedBox(width: 4),
                 Text(
                   'Reward',
                   style: TextStyle(
                     color: eventFormBlue,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -303,6 +321,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          key: const ValueKey('event-points-field'),
           controller: _pointsController,
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
@@ -315,48 +334,32 @@ class _CreateEventPageState extends State<CreateEventPage> {
             return null;
           },
         ),
-        const SizedBox(height: 24),
-        const Divider(color: Color(0xFFE2E7E4)),
-        const SizedBox(height: 20),
-        EventToggleRow(
-          title: 'Face Recognition',
-          description: 'Verifikasi kehadiran dengan wajah',
-          value: _faceRecognition,
-          onChanged: (value) => setState(() => _faceRecognition = value),
-        ),
-        const SizedBox(height: 20),
-        EventToggleRow(
-          title: 'Wajib Lampiran Foto',
-          description: 'Warga harus unggah bukti foto',
-          value: _requiresPhoto,
-          onChanged: (value) => setState(() => _requiresPhoto = value),
-        ),
       ],
     );
   }
 
-  Widget _buildPublishBar() {
+  Widget _buildPublishBar(bool isPublishing) {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF0F1F3))),
+        border: Border(top: BorderSide(color: Color(0xFFF1F1F2))),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 14, 24, 16),
+        padding: const EdgeInsets.fromLTRB(24, 10, 24, 12),
         child: SizedBox(
           width: double.infinity,
-          height: 54,
+          height: 46,
           child: FilledButton(
-            onPressed: _isPublishing ? null : _validateForPublish,
+            onPressed: isPublishing ? null : _validateForPublish,
             style: FilledButton.styleFrom(
               backgroundColor: eventFormBlue,
               foregroundColor: Colors.white,
               disabledBackgroundColor: const Color(0xFFAFC3F4),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: _isPublishing
+            child: isPublishing
                 ? const SizedBox(
                     width: 22,
                     height: 22,
@@ -367,7 +370,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   )
                 : const Text(
                     'Simpan & Publikasi',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   ),
           ),
         ),
@@ -447,20 +450,41 @@ class _CreateEventPageState extends State<CreateEventPage> {
     });
   }
 
-  Future<void> _selectTime() async {
-    final selected = await showTimePicker(
+  Future<void> _selectTimeRange() async {
+    final selected = await showEventTimeRangeSheet(
       context: context,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
+      initialRange: _selectedTimeRange,
     );
     if (selected == null || !mounted) return;
 
     setState(() {
-      _selectedTime = selected;
-      _timeController.text = selected.format(context);
+      _selectedTimeRange = selected;
+      _timeController.text =
+          '${selected.start.format(context)}–${selected.end.format(context)}';
     });
   }
 
-  Future<void> _validateForPublish() async {
+  Future<void> _selectLocation() async {
+    final selected = await context.router.push<EventLocationSelection>(
+      EventLocationPickerRoute(
+        initialLatitude: _selectedLocation?.latitude,
+        initialLongitude: _selectedLocation?.longitude,
+      ),
+    );
+    if (selected == null || !mounted) return;
+
+    setState(() {
+      _selectedLocation = selected;
+      _locationController.text = _locationLabel(selected);
+    });
+  }
+
+  static String _locationLabel(EventLocationSelection location) {
+    return '${location.latitude.toStringAsFixed(6)}, '
+        '${location.longitude.toStringAsFixed(6)}';
+  }
+
+  void _validateForPublish() {
     FocusManager.instance.primaryFocus?.unfocus();
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
@@ -474,11 +498,71 @@ class _CreateEventPageState extends State<CreateEventPage> {
       return;
     }
 
-    setState(() => _isPublishing = true);
-    await Future<void>.delayed(const Duration(milliseconds: 450));
-    if (!mounted) return;
-    setState(() => _isPublishing = false);
+    context.read<CreateEventCubit>().createEvent(_buildRequest());
+  }
 
+  CreateAdminEventRequest _buildRequest() {
+    final date = _selectedDate!;
+    final range = _selectedTimeRange!;
+    final location = _selectedLocation!;
+    final start = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      range.start.hour,
+      range.start.minute,
+    );
+    var end = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      range.end.hour,
+      range.end.minute,
+    );
+    if (range.endsNextDay) {
+      end = end.add(const Duration(days: 1));
+    }
+
+    return CreateAdminEventRequest(
+      title: _nameController.text,
+      description: _detailController.text,
+      eventDate: start,
+      attendanceStartTime: start,
+      attendanceEndTime: end,
+      rewardPoints: int.parse(_pointsController.text.trim()),
+      latitude: location.latitude,
+      longitude: location.longitude,
+      poster: _posterUpload(),
+    );
+  }
+
+  EventPosterUpload? _posterUpload() {
+    final bytes = _posterBytes;
+    if (bytes == null) return null;
+
+    final fileName = _posterName?.toLowerCase() ?? '';
+    return EventPosterUpload(
+      bytes: bytes,
+      contentType: fileName.endsWith('.png') ? 'image/png' : 'image/jpeg',
+    );
+  }
+
+  void _onCreateEventState(BuildContext context, CreateEventState state) {
+    switch (state) {
+      case CreateEventFailure(:final message):
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+        break;
+      case CreateEventSuccess():
+        _showSuccessDialog();
+        break;
+      case CreateEventInitial() || CreateEventSubmitting():
+        break;
+    }
+  }
+
+  Future<void> _showSuccessDialog() async {
     final action = await showDialog<EventSuccessAction>(
       context: context,
       barrierDismissible: false,
@@ -489,10 +573,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     switch (action) {
       case EventSuccessAction.viewList:
-        await context.router.maybePop();
+        await Navigator.of(context).maybePop(true);
         break;
       case EventSuccessAction.createAnother:
         _resetForm();
+        context.read<CreateEventCubit>().reset();
         break;
       case null:
         break;
@@ -508,14 +593,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
     _locationController.clear();
     _pointsController.text = '0';
     setState(() {
-      _category = null;
       _selectedDate = null;
-      _selectedTime = null;
+      _selectedTimeRange = null;
       _posterBytes = null;
       _posterName = null;
       _posterError = null;
-      _faceRecognition = false;
-      _requiresPhoto = false;
+      _selectedLocation = null;
     });
     _scrollController.animateTo(
       0,

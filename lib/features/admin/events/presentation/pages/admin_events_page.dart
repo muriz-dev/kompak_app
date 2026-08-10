@@ -2,83 +2,17 @@ import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../core/di/injection.dart';
 import '../../../../../core/routes/app_router.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../domain/entities/admin_event.dart';
+import '../bloc/admin_events_cubit.dart';
+import '../bloc/admin_events_state.dart';
 
-enum _EventStatus { upcoming, ongoing, completed }
-
-enum _EventFilter { all, upcoming, ongoing, completed }
-
-class _AdminEventSummary {
-  const _AdminEventSummary({
-    required this.title,
-    required this.dateLabel,
-    required this.timeLabel,
-    required this.status,
-    required this.attendanceCount,
-    required this.distributedPoints,
-  });
-
-  final String title;
-  final String dateLabel;
-  final String timeLabel;
-  final _EventStatus status;
-  final int attendanceCount;
-  final int distributedPoints;
-}
-
-const _sampleEvents = [
-  _AdminEventSummary(
-    title: 'Kerja Bakti Blok B',
-    dateLabel: '15 Mei 2024',
-    timeLabel: '07:00',
-    status: _EventStatus.upcoming,
-    attendanceCount: 0,
-    distributedPoints: 0,
-  ),
-  _AdminEventSummary(
-    title: 'Kerja Bakti Blok A',
-    dateLabel: '12 Mei 2024',
-    timeLabel: '07:00',
-    status: _EventStatus.ongoing,
-    attendanceCount: 42,
-    distributedPoints: 4200,
-  ),
-  _AdminEventSummary(
-    title: 'Rapat Bulanan RT',
-    dateLabel: '05 Mei 2024',
-    timeLabel: '19:30',
-    status: _EventStatus.completed,
-    attendanceCount: 50,
-    distributedPoints: 2400,
-  ),
-  _AdminEventSummary(
-    title: 'Penyemprotan Disinfektan',
-    dateLabel: '28 April 2024',
-    timeLabel: '09:00',
-    status: _EventStatus.completed,
-    attendanceCount: 20,
-    distributedPoints: 1500,
-  ),
-  _AdminEventSummary(
-    title: 'Posyandu Balita',
-    dateLabel: '21 April 2024',
-    timeLabel: '08:00',
-    status: _EventStatus.completed,
-    attendanceCount: 36,
-    distributedPoints: 1800,
-  ),
-  _AdminEventSummary(
-    title: 'Ronda Malam Bersama',
-    dateLabel: '18 Mei 2024',
-    timeLabel: '22:00',
-    status: _EventStatus.upcoming,
-    attendanceCount: 0,
-    distributedPoints: 0,
-  ),
-];
+enum _EventFilter { all, draft, upcoming, ongoing, completed, cancelled }
 
 @RoutePage()
 class AdminEventsPage extends StatelessWidget {
@@ -86,9 +20,14 @@ class AdminEventsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AdminEventsView(
-      onBack: () => context.router.maybePop(),
-      onCreateEvent: () => context.router.push(const CreateEventRoute()),
+    return BlocProvider(
+      create: (_) => getIt<AdminEventsCubit>()..loadEvents(),
+      child: AdminEventsView(
+        onBack: () => context.router.maybePop(),
+        onCreateEvent: () async {
+          await context.router.push<void>(CreateEventRoute());
+        },
+      ),
     );
   }
 }
@@ -101,7 +40,7 @@ class AdminEventsView extends StatefulWidget {
   });
 
   final VoidCallback onBack;
-  final VoidCallback onCreateEvent;
+  final Future<void> Function() onCreateEvent;
 
   @override
   State<AdminEventsView> createState() => _AdminEventsViewState();
@@ -127,102 +66,166 @@ class _AdminEventsViewState extends State<AdminEventsView> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredEvents = _filteredEvents;
-    final pageCount = math.max(1, (filteredEvents.length / _pageSize).ceil());
-    final currentPage = _currentPage.clamp(0, pageCount - 1);
-    final start = currentPage * _pageSize;
-    final end = math.min(start + _pageSize, filteredEvents.length);
-    final visibleEvents = start < end
-        ? filteredEvents.sublist(start, end)
-        : const <_AdminEventSummary>[];
+    return BlocBuilder<AdminEventsCubit, AdminEventsState>(
+      builder: (context, state) {
+        final events = state is AdminEventsLoaded
+            ? state.events
+            : const <AdminEvent>[];
+        final updatingEventId = state is AdminEventsLoaded
+            ? state.updatingEventId
+            : null;
+        final now = DateTime.now();
+        final filteredEvents = _filteredEvents(events, now);
+        final pageCount = math.max(
+          1,
+          (filteredEvents.length / _pageSize).ceil(),
+        );
+        final currentPage = _currentPage.clamp(0, pageCount - 1);
+        final start = currentPage * _pageSize;
+        final end = math.min(start + _pageSize, filteredEvents.length);
+        final visibleEvents = start < end
+            ? filteredEvents.sublist(start, end)
+            : const <AdminEvent>[];
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFEFFFF),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _AdminEventsHeader(onBack: widget.onBack),
-            Expanded(
-              child: ListView(
-                key: const ValueKey('admin-events-scroll'),
-                padding: const EdgeInsets.fromLTRB(24, 17, 24, 30),
-                children: [
-                  _SearchAndFilter(
-                    controller: _searchController,
-                    filterActive: _filter != _EventFilter.all,
-                    onSearchChanged: (_) => setState(() => _currentPage = 0),
-                    onFilterPressed: _selectFilter,
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 46,
-                    child: FilledButton.icon(
-                      key: const ValueKey('create-event-button'),
-                      onPressed: widget.onCreateEvent,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: KompakColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+        return Scaffold(
+          backgroundColor: const Color(0xFFFEFFFF),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _AdminEventsHeader(onBack: widget.onBack),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: context.read<AdminEventsCubit>().loadEvents,
+                    child: ListView(
+                      key: const ValueKey('admin-events-scroll'),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(24, 17, 24, 30),
+                      children: [
+                        _SearchAndFilter(
+                          controller: _searchController,
+                          filterActive: _filter != _EventFilter.all,
+                          onSearchChanged: (_) =>
+                              setState(() => _currentPage = 0),
+                          onFilterPressed: _selectFilter,
                         ),
-                      ),
-                      icon: const Icon(Icons.add_rounded, size: 20),
-                      label: const Text(
-                        'Buat Kegiatan',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 46,
+                          child: FilledButton.icon(
+                            key: const ValueKey('create-event-button'),
+                            onPressed: _openCreateEvent,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: KompakColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded, size: 20),
+                            label: const Text(
+                              'Buat Kegiatan',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 20),
+                        switch (state) {
+                          AdminEventsLoading() => const _LoadingEvents(),
+                          AdminEventsLoadFailure(:final message) =>
+                            _EventsFailure(
+                              message: message,
+                              onRetry: context
+                                  .read<AdminEventsCubit>()
+                                  .loadEvents,
+                            ),
+                          AdminEventsLoaded() when visibleEvents.isEmpty =>
+                            _EmptyEvents(onReset: _resetFilters),
+                          AdminEventsLoaded() => Column(
+                            children: [
+                              for (
+                                var index = 0;
+                                index < visibleEvents.length;
+                                index++
+                              )
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: index == visibleEvents.length - 1
+                                        ? 0
+                                        : 16,
+                                  ),
+                                  child: _EventCard(
+                                    event: visibleEvents[index],
+                                    lifecycle: visibleEvents[index].lifecycleAt(
+                                      now,
+                                    ),
+                                    actionsEnabled: updatingEventId == null,
+                                    isUpdating:
+                                        updatingEventId ==
+                                        visibleEvents[index].id,
+                                    onStatusChange: (status) => _changeStatus(
+                                      visibleEvents[index],
+                                      status,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        },
+                        if (state is AdminEventsLoaded) ...[
+                          const SizedBox(height: 20),
+                          _EventsPagination(
+                            currentPage: currentPage,
+                            pageCount: pageCount,
+                            visibleCount: visibleEvents.length,
+                            totalCount: filteredEvents.length,
+                            onPrevious: currentPage == 0
+                                ? null
+                                : () => setState(
+                                    () => _currentPage = currentPage - 1,
+                                  ),
+                            onNext: currentPage >= pageCount - 1
+                                ? null
+                                : () => setState(
+                                    () => _currentPage = currentPage + 1,
+                                  ),
+                            onPageSelected: (page) =>
+                                setState(() => _currentPage = page),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  if (visibleEvents.isEmpty)
-                    _EmptyEvents(onReset: _resetFilters)
-                  else
-                    for (var index = 0; index < visibleEvents.length; index++)
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == visibleEvents.length - 1 ? 0 : 16,
-                        ),
-                        child: _EventCard(event: visibleEvents[index]),
-                      ),
-                  const SizedBox(height: 20),
-                  _EventsPagination(
-                    currentPage: currentPage,
-                    pageCount: pageCount,
-                    visibleCount: visibleEvents.length,
-                    totalCount: filteredEvents.length,
-                    onPrevious: currentPage == 0
-                        ? null
-                        : () => setState(() => _currentPage = currentPage - 1),
-                    onNext: currentPage >= pageCount - 1
-                        ? null
-                        : () => setState(() => _currentPage = currentPage + 1),
-                    onPageSelected: (page) =>
-                        setState(() => _currentPage = page),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  List<_AdminEventSummary> get _filteredEvents {
+  List<AdminEvent> _filteredEvents(List<AdminEvent> events, DateTime now) {
     final query = _searchController.text.trim().toLowerCase();
-    return _sampleEvents
+    return events
         .where((event) {
           final matchesSearch =
-              query.isEmpty || event.title.toLowerCase().contains(query);
+              query.isEmpty ||
+              event.title.toLowerCase().contains(query) ||
+              event.description.toLowerCase().contains(query);
+          final lifecycle = event.lifecycleAt(now);
           final matchesStatus = switch (_filter) {
             _EventFilter.all => true,
-            _EventFilter.upcoming => event.status == _EventStatus.upcoming,
-            _EventFilter.ongoing => event.status == _EventStatus.ongoing,
-            _EventFilter.completed => event.status == _EventStatus.completed,
+            _EventFilter.draft => lifecycle == AdminEventLifecycle.draft,
+            _EventFilter.upcoming => lifecycle == AdminEventLifecycle.upcoming,
+            _EventFilter.ongoing => lifecycle == AdminEventLifecycle.ongoing,
+            _EventFilter.completed =>
+              lifecycle == AdminEventLifecycle.completed,
+            _EventFilter.cancelled =>
+              lifecycle == AdminEventLifecycle.cancelled,
           };
           return matchesSearch && matchesStatus;
         })
@@ -280,10 +283,97 @@ class _AdminEventsViewState extends State<AdminEventsView> {
 
   String _filterLabel(_EventFilter filter) => switch (filter) {
     _EventFilter.all => 'Semua kegiatan',
+    _EventFilter.draft => 'Draft',
     _EventFilter.upcoming => 'Belum Mulai',
     _EventFilter.ongoing => 'Berlangsung',
     _EventFilter.completed => 'Selesai',
+    _EventFilter.cancelled => 'Dibatalkan',
   };
+
+  Future<void> _openCreateEvent() async {
+    await widget.onCreateEvent();
+    if (!mounted) return;
+    await context.read<AdminEventsCubit>().loadEvents();
+  }
+
+  Future<void> _changeStatus(
+    AdminEvent event,
+    AdminEventRecordStatus status,
+  ) async {
+    final action = switch (status) {
+      AdminEventRecordStatus.published => (
+        title: 'Terbitkan kegiatan?',
+        message: 'Kegiatan "${event.title}" akan terlihat oleh seluruh warga.',
+        confirmLabel: 'Terbitkan',
+        destructive: false,
+      ),
+      AdminEventRecordStatus.closed => (
+        title: 'Tutup kegiatan?',
+        message:
+            'Absensi untuk kegiatan "${event.title}" akan ditutup permanen.',
+        confirmLabel: 'Tutup Kegiatan',
+        destructive: false,
+      ),
+      AdminEventRecordStatus.cancelled => (
+        title: 'Batalkan kegiatan?',
+        message:
+            'Kegiatan "${event.title}" akan dibatalkan dan tidak dapat diterbitkan kembali.',
+        confirmLabel: 'Batalkan',
+        destructive: true,
+      ),
+      AdminEventRecordStatus.draft => throw StateError(
+        'An event cannot transition back to draft',
+      ),
+    };
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(action.title),
+        content: Text(action.message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Kembali'),
+          ),
+          FilledButton(
+            key: ValueKey('confirm-${status.apiValue.toLowerCase()}'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: action.destructive
+                ? FilledButton.styleFrom(backgroundColor: _red)
+                : null,
+            child: Text(action.confirmLabel),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final error = await context.read<AdminEventsCubit>().updateEventStatus(
+      event.id,
+      status,
+    );
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          error ??
+              switch (status) {
+                AdminEventRecordStatus.published =>
+                  'Kegiatan berhasil diterbitkan.',
+                AdminEventRecordStatus.closed => 'Kegiatan berhasil ditutup.',
+                AdminEventRecordStatus.cancelled =>
+                  'Kegiatan berhasil dibatalkan.',
+                AdminEventRecordStatus.draft => '',
+              },
+        ),
+        backgroundColor: error == null ? KompakColors.success : _red,
+      ),
+    );
+  }
 
   void _resetFilters() {
     _searchController.clear();
@@ -424,9 +514,19 @@ class _SearchAndFilter extends StatelessWidget {
 }
 
 class _EventCard extends StatelessWidget {
-  const _EventCard({required this.event});
+  const _EventCard({
+    required this.event,
+    required this.lifecycle,
+    required this.actionsEnabled,
+    required this.isUpdating,
+    required this.onStatusChange,
+  });
 
-  final _AdminEventSummary event;
+  final AdminEvent event;
+  final AdminEventLifecycle lifecycle;
+  final bool actionsEnabled;
+  final bool isUpdating;
+  final ValueChanged<AdminEventRecordStatus> onStatusChange;
 
   @override
   Widget build(BuildContext context) {
@@ -468,7 +568,7 @@ class _EventCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
-                            '${event.dateLabel} • ${event.timeLabel}',
+                            '${_dateLabel(event.eventDate)} • ${DateFormat('HH:mm').format(event.attendanceStartTime.toLocal())}',
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: _AdminEventsViewState._muted,
@@ -482,7 +582,7 @@ class _EventCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _EventStatusBadge(status: event.status),
+              _EventStatusBadge(status: lifecycle),
             ],
           ),
           const SizedBox(height: 16),
@@ -496,10 +596,10 @@ class _EventCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _EventMetric(
-                  icon: Icons.groups_rounded,
+                  icon: Icons.location_searching_rounded,
                   iconColor: KompakColors.primary,
-                  value: '${event.attendanceCount} Warga',
-                  label: 'Kehadiran',
+                  value: '${event.radiusMeters} meter',
+                  label: 'Radius Absensi',
                 ),
               ),
               const SizedBox(width: 16),
@@ -507,17 +607,124 @@ class _EventCard extends StatelessWidget {
                 child: _EventMetric(
                   icon: Icons.workspace_premium_rounded,
                   iconColor: _AdminEventsViewState._orange,
-                  value: event.distributedPoints == 0
-                      ? '0 Pts'
-                      : '+${NumberFormat.decimalPattern('en_US').format(event.distributedPoints)} Pts',
-                  label: 'Terdistribusi',
+                  value:
+                      '+${NumberFormat.decimalPattern('id_ID').format(event.rewardPoints)} Pts',
+                  label: 'Reward',
                   valueColor: _AdminEventsViewState._orange,
                 ),
               ),
             ],
           ),
+          if (event.status
+              case AdminEventRecordStatus.draft ||
+                  AdminEventRecordStatus.published) ...[
+            const SizedBox(height: 16),
+            _EventActions(
+              event: event,
+              enabled: actionsEnabled,
+              isUpdating: isUpdating,
+              onStatusChange: onStatusChange,
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  String _dateLabel(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    final local = date.toLocal();
+    return '${local.day.toString().padLeft(2, '0')} ${months[local.month - 1]} ${local.year}';
+  }
+}
+
+class _EventActions extends StatelessWidget {
+  const _EventActions({
+    required this.event,
+    required this.enabled,
+    required this.isUpdating,
+    required this.onStatusChange,
+  });
+
+  final AdminEvent event;
+  final bool enabled;
+  final bool isUpdating;
+  final ValueChanged<AdminEventRecordStatus> onStatusChange;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isUpdating) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SizedBox.square(
+            dimension: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          ),
+        ),
+      );
+    }
+
+    if (event.status == AdminEventRecordStatus.draft) {
+      return SizedBox(
+        width: double.infinity,
+        height: 40,
+        child: FilledButton.icon(
+          key: ValueKey('publish-event-${event.id}'),
+          onPressed: enabled
+              ? () => onStatusChange(AdminEventRecordStatus.published)
+              : null,
+          icon: const Icon(Icons.publish_rounded, size: 18),
+          label: const Text('Terbitkan'),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 40,
+            child: OutlinedButton(
+              key: ValueKey('cancel-event-${event.id}'),
+              onPressed: enabled
+                  ? () => onStatusChange(AdminEventRecordStatus.cancelled)
+                  : null,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _AdminEventsViewState._red,
+                side: const BorderSide(color: _AdminEventsViewState._red),
+              ),
+              child: const Text('Batalkan'),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: SizedBox(
+            height: 40,
+            child: FilledButton(
+              key: ValueKey('close-event-${event.id}'),
+              onPressed: enabled
+                  ? () => onStatusChange(AdminEventRecordStatus.closed)
+                  : null,
+              child: const Text('Tutup'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -525,25 +732,35 @@ class _EventCard extends StatelessWidget {
 class _EventStatusBadge extends StatelessWidget {
   const _EventStatusBadge({required this.status});
 
-  final _EventStatus status;
+  final AdminEventLifecycle status;
 
   @override
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (status) {
-      _EventStatus.upcoming => (
+      AdminEventLifecycle.draft => (
+        'Draft',
+        const Color(0xFF667085),
+        Icons.edit_outlined,
+      ),
+      AdminEventLifecycle.upcoming => (
         'Belum Mulai',
         _AdminEventsViewState._orange,
         null,
       ),
-      _EventStatus.ongoing => (
+      AdminEventLifecycle.ongoing => (
         'Berlangsung',
         _AdminEventsViewState._red,
         Icons.circle,
       ),
-      _EventStatus.completed => (
+      AdminEventLifecycle.completed => (
         'Selesai',
         KompakColors.success,
         Icons.check_circle,
+      ),
+      AdminEventLifecycle.cancelled => (
+        'Dibatalkan',
+        const Color(0xFFF04438),
+        Icons.cancel_rounded,
       ),
     };
 
@@ -560,7 +777,7 @@ class _EventStatusBadge extends StatelessWidget {
             Icon(
               icon,
               color: Colors.white,
-              size: status == _EventStatus.ongoing ? 8 : 12,
+              size: status == AdminEventLifecycle.ongoing ? 8 : 12,
             ),
             const SizedBox(width: 4),
           ],
@@ -663,6 +880,13 @@ class _EventsPagination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pageIndices = switch (pageCount) {
+      <= 3 => List.generate(pageCount, (index) => index),
+      _ when currentPage == 0 => const [0, 1],
+      _ when currentPage == pageCount - 1 => [pageCount - 2, pageCount - 1],
+      _ => [currentPage - 1, currentPage, currentPage + 1],
+    };
+
     return Container(
       constraints: const BoxConstraints(minHeight: 72),
       padding: const EdgeInsets.all(16),
@@ -688,7 +912,7 @@ class _EventsPagination extends StatelessWidget {
             icon: Icons.chevron_left_rounded,
           ),
           const SizedBox(width: 8),
-          for (var page = 0; page < pageCount; page++) ...[
+          for (final page in pageIndices) ...[
             _PageButton(
               key: ValueKey('admin-events-page-${page + 1}'),
               onPressed: () => onPageSelected(page),
@@ -747,6 +971,63 @@ class _PageButton extends StatelessWidget {
                   color: selected ? Colors.white : _AdminEventsViewState._ink,
                 ),
               ),
+      ),
+    );
+  }
+}
+
+class _LoadingEvents extends StatelessWidget {
+  const _LoadingEvents();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 48),
+    child: Center(child: CircularProgressIndicator()),
+  );
+}
+
+class _EventsFailure extends StatelessWidget {
+  const _EventsFailure({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.cloud_off_rounded,
+            size: 42,
+            color: Color(0xFF98A2B3),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Daftar kegiatan tidak dapat dimuat',
+            style: TextStyle(
+              color: _AdminEventsViewState._ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _AdminEventsViewState._muted,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 14),
+          FilledButton.tonal(
+            key: const ValueKey('retry-admin-events'),
+            onPressed: onRetry,
+            child: const Text('Coba Lagi'),
+          ),
+        ],
       ),
     );
   }

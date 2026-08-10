@@ -2,11 +2,16 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 
-const eventFormInk = Color(0xFF262A31);
-const eventFormMuted = Color(0xFF667085);
-const eventFormBlue = Color(0xFF2F67E8);
-const eventFormFill = Color(0xFFF0F1F3);
+import '../../../../../core/config/app_config.dart';
+
+const eventFormInk = Color(0xFF2F3236);
+const eventFormMuted = Color(0xFF7A7C80);
+const eventFormBlue = Color(0xFF2563EB);
+const eventFormFill = Color(0xFFF1F1F2);
+const eventFormOutline = Color(0xFFE2E4E5);
 
 class EventFormSection extends StatelessWidget {
   final Widget child;
@@ -16,11 +21,11 @@ class EventFormSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE6E8EB)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFF1F1F2)),
       ),
       child: child,
     );
@@ -42,11 +47,11 @@ class EventFieldLabel extends StatelessWidget {
           label,
           style: const TextStyle(
             color: eventFormInk,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         child,
       ],
     );
@@ -59,12 +64,12 @@ InputDecoration eventInputDecoration({
   Widget? suffixIcon,
   String? prefixText,
 }) {
-  const borderRadius = BorderRadius.all(Radius.circular(12));
+  const borderRadius = BorderRadius.all(Radius.circular(8));
   return InputDecoration(
     hintText: hintText,
     hintStyle: const TextStyle(
-      color: Color(0xFF7B828B),
-      fontSize: 15,
+      color: Color(0xFFB0B2B3),
+      fontSize: 14,
       fontWeight: FontWeight.w400,
     ),
     prefixIcon: prefixIcon,
@@ -72,12 +77,13 @@ InputDecoration eventInputDecoration({
     prefixText: prefixText,
     prefixStyle: const TextStyle(
       color: eventFormInk,
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
     ),
+    isDense: true,
     filled: true,
     fillColor: eventFormFill,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
     border: const OutlineInputBorder(
       borderRadius: borderRadius,
       borderSide: BorderSide.none,
@@ -130,17 +136,17 @@ class EventPosterPicker extends StatelessWidget {
           child: CustomPaint(
             painter: _DashedBorderPainter(
               color: errorText == null
-                  ? const Color(0xFFD5D9DE)
+                  ? eventFormOutline
                   : const Color(0xFFD92D20),
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: onPick,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 220,
+                  height: 145,
                   child: imageBytes == null
                       ? const _EmptyPosterPicker()
                       : _PosterPreview(
@@ -173,27 +179,23 @@ class _EmptyPosterPicker extends StatelessWidget {
     return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.add_photo_alternate_outlined,
-          size: 44,
-          color: Color(0xFF9299A1),
-        ),
-        SizedBox(height: 10),
+        Icon(Icons.file_upload_outlined, size: 28, color: Color(0xFF7A7C80)),
+        SizedBox(height: 8),
         Text(
           'Klik untuk unggah poster',
           style: TextStyle(
-            color: Color(0xFF364039),
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
+            color: eventFormInk,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 4),
+        SizedBox(height: 2),
         Text(
-          'Format JPG/PNG, Maks 5MB',
+          'Format JPG/PNG, Max 5MB',
           style: TextStyle(
-            color: Color(0xFF7B828B),
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+            color: Color(0xFFB0B2B3),
+            fontSize: 10,
+            fontWeight: FontWeight.w400,
           ),
         ),
       ],
@@ -218,7 +220,7 @@ class _PosterPreview extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           child: Image.memory(
             imageBytes,
             fit: BoxFit.cover,
@@ -266,68 +268,137 @@ class _PosterPreview extends StatelessWidget {
   }
 }
 
-class EventToggleRow extends StatelessWidget {
-  final String title;
-  final String description;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const EventToggleRow({
+class EventLocationMapPreview extends StatelessWidget {
+  const EventLocationMapPreview({
     super.key,
-    required this.title,
-    required this.description,
-    required this.value,
-    required this.onChanged,
+    required this.onTap,
+    this.latitude,
+    this.longitude,
   });
+
+  final VoidCallback onTap;
+  final double? latitude;
+  final double? longitude;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: eventFormInk,
-                  fontSize: 16,
-                  height: 1.2,
-                  fontWeight: FontWeight.w600,
-                ),
+    final hasSelection = latitude != null && longitude != null;
+
+    return Semantics(
+      key: const ValueKey('event-location-map'),
+      button: true,
+      label: hasSelection
+          ? 'Ubah titik lokasi kegiatan'
+          : 'Pilih titik lokasi kegiatan',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 160,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (hasSelection)
+                    IgnorePointer(
+                      child: FlutterMap(
+                        key: ValueKey('event-map-$latitude-$longitude'),
+                        options: MapOptions(
+                          initialCenter: LatLng(latitude!, longitude!),
+                          initialZoom: 16,
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: AppConfig.mapTileUrl,
+                            userAgentPackageName:
+                                AppConfig.mapUserAgentPackageName,
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Image.asset(
+                      'assets/images/event_location_map.png',
+                      fit: BoxFit.cover,
+                      excludeFromSemantics: true,
+                    ),
+                  if (hasSelection)
+                    IgnorePointer(
+                      child: Center(
+                        child: Transform.translate(
+                          offset: const Offset(0, -14),
+                          child: const Icon(
+                            Icons.location_pin,
+                            color: eventFormBlue,
+                            size: 38,
+                            shadows: [
+                              Shadow(
+                                color: Color(0x33000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    left: 12,
+                    bottom: 12,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF12B76A),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x26000000),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Icon(
+                          Icons.my_location_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (hasSelection)
+                    Positioned(
+                      right: 6,
+                      bottom: 4,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.88),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Text(
+                            AppConfig.mapAttribution,
+                            style: TextStyle(color: eventFormInk, fontSize: 8),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                description,
-                style: const TextStyle(
-                  color: eventFormMuted,
-                  fontSize: 13,
-                  height: 1.3,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-        const SizedBox(width: 12),
-        SwitchTheme(
-          data: SwitchThemeData(
-            thumbColor: const WidgetStatePropertyAll(Colors.white),
-            trackColor: WidgetStateProperty.resolveWith(
-              (states) => states.contains(WidgetState.selected)
-                  ? eventFormBlue
-                  : const Color(0xFFBED1C4),
-            ),
-            trackOutlineColor: WidgetStateProperty.resolveWith(
-              (states) => states.contains(WidgetState.selected)
-                  ? eventFormBlue
-                  : const Color(0xFFA8BCAF),
-            ),
-          ),
-          child: Switch.adaptive(value: value, onChanged: onChanged),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -345,7 +416,7 @@ class _DashedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
     final path = Path()
       ..addRRect(
-        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(14)),
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(12)),
       );
 
     for (final metric in path.computeMetrics()) {

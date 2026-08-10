@@ -6,4 +6,12 @@ void main() {
     expect(AppConfig.apiBaseUrl, isNotEmpty);
     expect(AppConfig.apiBaseUrl, startsWith('http'));
   });
+
+  test('exposes compile-time map configuration', () {
+    expect(AppConfig.mapTileUrl, contains('{z}'));
+    expect(AppConfig.mapTileUrl, contains('{x}'));
+    expect(AppConfig.mapTileUrl, contains('{y}'));
+    expect(AppConfig.mapAttribution, isNotEmpty);
+    expect(AppConfig.mapUserAgentPackageName, isNotEmpty);
+  });
 }

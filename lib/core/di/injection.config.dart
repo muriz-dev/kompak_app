@@ -15,6 +15,16 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
+import '../../features/admin/events/data/datasources/admin_events_remote_data_source.dart'
+    as _i461;
+import '../../features/admin/events/data/repositories/admin_events_repository_impl.dart'
+    as _i99;
+import '../../features/admin/events/domain/repositories/admin_events_repository.dart'
+    as _i78;
+import '../../features/admin/events/presentation/bloc/admin_events_cubit.dart'
+    as _i794;
+import '../../features/admin/events/presentation/bloc/create_event_cubit.dart'
+    as _i269;
 import '../../features/admin/residents/data/datasources/admin_residents_remote_data_source.dart'
     as _i592;
 import '../../features/admin/residents/data/repositories/admin_residents_repository_impl.dart'
@@ -84,6 +94,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i875.SessionInvalidationBus>(),
       ),
     );
+    gh.lazySingleton<_i461.AdminEventsRemoteDataSource>(
+      () => _i461.AdminEventsRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i107.AuthRemoteDataSource>(
       () => _i107.AuthRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
@@ -116,11 +129,22 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i592.AdminResidentsRemoteDataSource>(),
       ),
     );
+    gh.lazySingleton<_i78.AdminEventsRepository>(
+      () => _i99.AdminEventsRepositoryImpl(
+        gh<_i461.AdminEventsRemoteDataSource>(),
+      ),
+    );
     gh.factory<_i938.AdminResidentsCubit>(
       () => _i938.AdminResidentsCubit(gh<_i943.AdminResidentsRepository>()),
     );
     gh.singleton<_i629.AppRouter>(
       () => routerModule.appRouter(gh<_i371.SessionCubit>()),
+    );
+    gh.factory<_i794.AdminEventsCubit>(
+      () => _i794.AdminEventsCubit(gh<_i78.AdminEventsRepository>()),
+    );
+    gh.factory<_i269.CreateEventCubit>(
+      () => _i269.CreateEventCubit(gh<_i78.AdminEventsRepository>()),
     );
     return this;
   }

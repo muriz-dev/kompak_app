@@ -1,3 +1,6 @@
 {
-  "API_BASE_URL": "http://10.0.2.2:8787"
+  "API_BASE_URL": "http://localhost:8787",
+  "MAP_TILE_URL": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "MAP_ATTRIBUTION": "© OpenStreetMap contributors",
+  "MAP_USER_AGENT_PACKAGE_NAME": "com.example.kompak_app"
 }

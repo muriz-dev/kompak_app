@@ -8,4 +8,19 @@ abstract final class AppConfig {
     'API_BASE_URL',
     defaultValue: 'https://kompak-api.muriz.workers.dev',
   );
+
+  static const mapTileUrl = String.fromEnvironment(
+    'MAP_TILE_URL',
+    defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  );
+
+  static const mapAttribution = String.fromEnvironment(
+    'MAP_ATTRIBUTION',
+    defaultValue: '© OpenStreetMap contributors',
+  );
+
+  static const mapUserAgentPackageName = String.fromEnvironment(
+    'MAP_USER_AGENT_PACKAGE_NAME',
+    defaultValue: 'com.example.kompak_app',
+  );
 }
