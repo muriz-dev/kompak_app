@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../domain/entities/community_event.dart';
+import '../../../attendance/presentation/widgets/attendance_check_in_form_dialog.dart';
 import '../bloc/activity_detail_cubit.dart';
 import '../bloc/activity_detail_state.dart';
 
@@ -278,9 +279,20 @@ class _ActivityDetailView extends StatelessWidget {
                     child: FilledButton.icon(
                       key: const ValueKey('activity-check-in-button'),
                       onPressed: availability.canCheckIn
-                          ? () => context.router.push(
-                              AttendanceScannerRoute(eventId: event.id),
-                            )
+                          ? () async {
+                              final form =
+                                  await showAttendanceCheckInFormDialog(
+                                    context,
+                                  );
+                              if (form == null || !context.mounted) return;
+                              await context.router.push(
+                                AttendanceScannerRoute(
+                                  eventId: event.id,
+                                  activityPhotoPath: form.activityPhotoPath,
+                                  activityDescription: form.activityDescription,
+                                ),
+                              );
+                            }
                           : null,
                       style: FilledButton.styleFrom(
                         backgroundColor: _detailBlue,

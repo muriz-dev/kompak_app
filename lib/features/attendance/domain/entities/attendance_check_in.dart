@@ -6,15 +6,26 @@ class AttendanceCheckInRequest extends Equatable {
     required this.latitude,
     required this.longitude,
     required this.faceImagePath,
+    this.activityPhotoPath,
+    this.activityDescription = '',
   });
 
   final String eventId;
   final double latitude;
   final double longitude;
   final String faceImagePath;
+  final String? activityPhotoPath;
+  final String activityDescription;
 
   @override
-  List<Object?> get props => [eventId, latitude, longitude, faceImagePath];
+  List<Object?> get props => [
+    eventId,
+    latitude,
+    longitude,
+    faceImagePath,
+    activityPhotoPath,
+    activityDescription,
+  ];
 }
 
 class AttendanceCheckInResult extends Equatable {

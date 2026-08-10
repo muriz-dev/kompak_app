@@ -33,7 +33,6 @@ void main() {
   Widget buildDashboard({
     VoidCallback? onNotificationTap,
     VoidCallback? onProfileTap,
-    VoidCallback? onAdminPreviewTap,
     VoidCallback? onRedeemTap,
     VoidCallback? onViewAllActivities,
     ValueChanged<UpcomingActivity>? onActivityReminder,
@@ -48,7 +47,6 @@ void main() {
           announcements: announcements,
           onNotificationTap: onNotificationTap ?? () {},
           onProfileTap: onProfileTap ?? () {},
-          onAdminPreviewTap: onAdminPreviewTap ?? () {},
           onRedeemTap: onRedeemTap ?? () {},
           onViewAllActivities: onViewAllActivities ?? () {},
           onActivityReminder: onActivityReminder ?? (_) {},
@@ -70,13 +68,12 @@ void main() {
     expect(find.text('Kegiatan Mendatang'), findsOneWidget);
     expect(find.text('Rapat Triwulan RT'), findsOneWidget);
     expect(find.text('Pengumuman Terbaru'), findsOneWidget);
-    expect(find.text('Buka pratinjau admin'), findsOneWidget);
+    expect(find.text('Buka pratinjau admin'), findsNothing);
   });
 
   testWidgets('connects dashboard actions', (tester) async {
     var notificationTapped = false;
     var profileTapped = false;
-    var adminPreviewTapped = false;
     var redeemTapped = false;
     var viewAllTapped = false;
     UpcomingActivity? remindedActivity;
@@ -87,7 +84,6 @@ void main() {
       buildDashboard(
         onNotificationTap: () => notificationTapped = true,
         onProfileTap: () => profileTapped = true,
-        onAdminPreviewTap: () => adminPreviewTapped = true,
         onRedeemTap: () => redeemTapped = true,
         onViewAllActivities: () => viewAllTapped = true,
         onActivityReminder: (activity) => remindedActivity = activity,
@@ -103,12 +99,6 @@ void main() {
     tester
         .widget<InkWell>(find.byKey(const ValueKey('home-profile-button')))
         .onTap
-        ?.call();
-    tester
-        .widget<OutlinedButton>(
-          find.byKey(const ValueKey('home-admin-preview-button')),
-        )
-        .onPressed
         ?.call();
     tester
         .widget<InkWell>(find.byKey(const ValueKey('home-activity-activity-1')))
@@ -141,7 +131,6 @@ void main() {
 
     expect(notificationTapped, isTrue);
     expect(profileTapped, isTrue);
-    expect(adminPreviewTapped, isTrue);
     expect(redeemTapped, isTrue);
     expect(viewAllTapped, isTrue);
     expect(remindedActivity, same(activities.first));

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
@@ -12,9 +14,12 @@ abstract interface class AttendanceRemoteDataSource {
 
 @LazySingleton(as: AttendanceRemoteDataSource)
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
-  AttendanceRemoteDataSourceImpl(this._dio);
+  AttendanceRemoteDataSourceImpl(this._dio) : _uploadDio = Dio();
+
+  AttendanceRemoteDataSourceImpl.withUploadDio(this._dio, this._uploadDio);
 
   final Dio _dio;
+  final Dio _uploadDio;
 
   @override
   Future<AttendanceCheckInResult> checkIn(
@@ -27,10 +32,18 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           : extension == 'webp'
           ? 'webp'
           : 'jpeg';
+      final activityPhotoUrl = request.activityPhotoPath == null
+          ? null
+          : await _uploadActivityPhoto(request.activityPhotoPath!);
       final form = FormData.fromMap({
         'eventId': request.eventId,
         'latitude': request.latitude.toString(),
         'longitude': request.longitude.toString(),
+        ...?(activityPhotoUrl == null
+            ? null
+            : {'activityPhotoUrl': activityPhotoUrl}),
+        if (request.activityDescription.trim().isNotEmpty)
+          'activityDescription': request.activityDescription.trim(),
         'faceImage': await MultipartFile.fromFile(
           request.faceImagePath,
           filename: 'attendance-face.$extension',
@@ -46,6 +59,60 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       return AttendanceCheckInResult.fromJson(Map<String, dynamic>.from(data));
     } on DioException catch (error) {
       throw AttendanceException(_errorMessage(error));
+    }
+  }
+
+  Future<String> _uploadActivityPhoto(String path) async {
+    final file = File(path);
+    final bytes = await file.readAsBytes();
+    if (bytes.length > 5 * 1024 * 1024) {
+      throw const AttendanceException(
+        'Ukuran foto kegiatan maksimal 5 MB. Silakan pilih foto lain.',
+      );
+    }
+    final extension = path.split('.').last.toLowerCase();
+    final subtype = extension == 'png'
+        ? 'png'
+        : extension == 'webp'
+        ? 'webp'
+        : 'jpeg';
+    final contentType = 'image/$subtype';
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/storage/upload-url',
+        data: {
+          'folder': 'attendances',
+          'contentType': contentType,
+          'contentLength': bytes.length,
+        },
+      );
+      final data = response.data;
+      final uploadData = data?['data'];
+      if (data == null ||
+          data['success'] != true ||
+          uploadData is! Map ||
+          uploadData['uploadUrl'] is! String ||
+          uploadData['publicUrl'] is! String) {
+        throw const FormatException('Invalid activity photo upload response');
+      }
+      await _uploadDio.put<void>(
+        uploadData['uploadUrl'] as String,
+        data: Stream<List<int>>.value(bytes),
+        options: Options(
+          headers: {
+            Headers.contentTypeHeader: contentType,
+            Headers.contentLengthHeader: bytes.length,
+          },
+        ),
+      );
+      return uploadData['publicUrl'] as String;
+    } on DioException catch (error) {
+      throw AttendanceException(
+        _errorMessage(
+          error,
+          fallback: 'Foto kegiatan gagal diunggah. Silakan coba lagi.',
+        ),
+      );
     }
   }
 

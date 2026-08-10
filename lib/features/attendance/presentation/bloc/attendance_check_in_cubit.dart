@@ -17,6 +17,8 @@ class AttendanceCheckInCubit extends Cubit<AttendanceCheckInState> {
     required String faceImagePath,
     required double latitude,
     required double longitude,
+    String? activityPhotoPath,
+    String activityDescription = '',
   }) async {
     emit(const AttendanceCheckInSubmitting());
     try {
@@ -26,6 +28,8 @@ class AttendanceCheckInCubit extends Cubit<AttendanceCheckInState> {
           latitude: latitude,
           longitude: longitude,
           faceImagePath: faceImagePath,
+          activityPhotoPath: activityPhotoPath,
+          activityDescription: activityDescription,
         ),
       );
       emit(AttendanceCheckInSuccess(result));

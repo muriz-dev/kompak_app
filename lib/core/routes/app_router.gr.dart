@@ -167,6 +167,8 @@ class AttendanceRoute extends PageRouteInfo<void> {
 class AttendanceScannerRoute extends PageRouteInfo<AttendanceScannerRouteArgs> {
   AttendanceScannerRoute({
     required String eventId,
+    String? activityPhotoPath,
+    String activityDescription = '',
     AttendanceLocationService locationService =
         const GeolocatorAttendanceLocationService(),
     Key? key,
@@ -175,6 +177,8 @@ class AttendanceScannerRoute extends PageRouteInfo<AttendanceScannerRouteArgs> {
          AttendanceScannerRoute.name,
          args: AttendanceScannerRouteArgs(
            eventId: eventId,
+           activityPhotoPath: activityPhotoPath,
+           activityDescription: activityDescription,
            locationService: locationService,
            key: key,
          ),
@@ -195,6 +199,8 @@ class AttendanceScannerRoute extends PageRouteInfo<AttendanceScannerRouteArgs> {
       );
       return AttendanceScannerPage(
         eventId: args.eventId,
+        activityPhotoPath: args.activityPhotoPath,
+        activityDescription: args.activityDescription,
         locationService: args.locationService,
         key: args.key,
       );
@@ -205,11 +211,17 @@ class AttendanceScannerRoute extends PageRouteInfo<AttendanceScannerRouteArgs> {
 class AttendanceScannerRouteArgs {
   const AttendanceScannerRouteArgs({
     required this.eventId,
+    this.activityPhotoPath,
+    this.activityDescription = '',
     this.locationService = const GeolocatorAttendanceLocationService(),
     this.key,
   });
 
   final String eventId;
+
+  final String? activityPhotoPath;
+
+  final String activityDescription;
 
   final AttendanceLocationService locationService;
 
@@ -217,7 +229,7 @@ class AttendanceScannerRouteArgs {
 
   @override
   String toString() {
-    return 'AttendanceScannerRouteArgs{eventId: $eventId, locationService: $locationService, key: $key}';
+    return 'AttendanceScannerRouteArgs{eventId: $eventId, activityPhotoPath: $activityPhotoPath, activityDescription: $activityDescription, locationService: $locationService, key: $key}';
   }
 
   @override
@@ -225,13 +237,19 @@ class AttendanceScannerRouteArgs {
     if (identical(this, other)) return true;
     if (other is! AttendanceScannerRouteArgs) return false;
     return eventId == other.eventId &&
+        activityPhotoPath == other.activityPhotoPath &&
+        activityDescription == other.activityDescription &&
         locationService == other.locationService &&
         key == other.key;
   }
 
   @override
   int get hashCode =>
-      eventId.hashCode ^ locationService.hashCode ^ key.hashCode;
+      eventId.hashCode ^
+      activityPhotoPath.hashCode ^
+      activityDescription.hashCode ^
+      locationService.hashCode ^
+      key.hashCode;
 }
 
 /// generated route for

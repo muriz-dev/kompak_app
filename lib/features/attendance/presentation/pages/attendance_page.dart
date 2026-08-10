@@ -8,6 +8,7 @@ import '../../domain/entities/attendance_record.dart';
 import '../bloc/attendance_cubit.dart';
 import '../bloc/attendance_state.dart';
 import '../widgets/attendance_stats_card.dart';
+import '../widgets/attendance_check_in_form_dialog.dart';
 import '../widgets/ongoing_event_card.dart';
 import '../widgets/upcoming_event_list_tile.dart';
 
@@ -111,6 +112,10 @@ class AttendancePage extends StatelessWidget {
                               eventId: state.ongoingEvent!.id,
                             ),
                           ),
+                          onCheckInTap: () => _openAttendanceFlow(
+                            context,
+                            state.ongoingEvent!.id,
+                          ),
                         )
                       else
                         const _EmptyEventMessage(
@@ -178,6 +183,18 @@ class AttendancePage extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _openAttendanceFlow(BuildContext context, String eventId) async {
+  final form = await showAttendanceCheckInFormDialog(context);
+  if (form == null || !context.mounted) return;
+  await context.router.push(
+    AttendanceScannerRoute(
+      eventId: eventId,
+      activityPhotoPath: form.activityPhotoPath,
+      activityDescription: form.activityDescription,
+    ),
+  );
 }
 
 class _AttendanceHistoryTile extends StatelessWidget {

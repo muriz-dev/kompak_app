@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/widgets/face_scanner_overlay.dart';
 import '../../data/services/attendance_location_service.dart';
@@ -13,11 +14,15 @@ import '../bloc/attendance_check_in_cubit.dart';
 class AttendanceScannerPage extends StatefulWidget {
   const AttendanceScannerPage({
     @PathParam('eventId') required this.eventId,
+    this.activityPhotoPath,
+    this.activityDescription = '',
     this.locationService = const GeolocatorAttendanceLocationService(),
     super.key,
   });
 
   final String eventId;
+  final String? activityPhotoPath;
+  final String activityDescription;
   final AttendanceLocationService locationService;
 
   @override
@@ -103,6 +108,8 @@ class _AttendanceScannerPageState extends State<AttendanceScannerPage> {
         faceImagePath: image.path,
         latitude: coordinates.latitude,
         longitude: coordinates.longitude,
+        activityPhotoPath: widget.activityPhotoPath,
+        activityDescription: widget.activityDescription,
       );
     } on AttendanceLocationException catch (error) {
       if (!mounted) return;
@@ -139,54 +146,112 @@ class _AttendanceScannerPageState extends State<AttendanceScannerPage> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 76,
-              height: 76,
-              decoration: const BoxDecoration(
-                color: KompakColors.success,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_rounded,
-                color: Colors.white,
-                size: 48,
-              ),
+      builder: (dialogContext) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 342),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: const BoxDecoration(
+                    color: KompakColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                const Text(
+                  'Scan Wajah Berhasil!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: KompakColors.primary,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Identitas Anda sudah terkonfirmasi.\nAnda mendapatkan:',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: KompakColors.mutedInk,
+                    fontSize: 15,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF79009),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.stars_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '+${state.result.pointsEarned} Point',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    key: const ValueKey('attendance-success-home-button'),
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      context.router.root.navigate(
+                        const MainRoute(children: [HomeRoute()]),
+                      );
+                    },
+                    child: const Text('Kembali ke Beranda'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    key: const ValueKey('attendance-success-history-button'),
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      context.router.root.push(const PointHistoryRoute());
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFE9EFFD),
+                      foregroundColor: KompakColors.primary,
+                    ),
+                    child: const Text('Lihat Riwayat Poin'),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Absensi Berhasil',
-              style: TextStyle(
-                color: KompakColors.primary,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Kehadiran Anda telah terverifikasi dan '
-              '+${state.result.pointsEarned} poin ditambahkan.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: KompakColors.mutedInk, height: 1.4),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                key: const ValueKey('attendance-success-button'),
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  context.router.back();
-                },
-                child: const Text('Kembali ke Kegiatan'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

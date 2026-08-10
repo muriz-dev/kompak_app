@@ -404,27 +404,48 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Manajemen Warga',
-          style: TextStyle(
-            color: _AdminResidentsViewState._ink,
-            fontSize: 25,
-            height: 1.2,
-            letterSpacing: -0.2,
-            fontWeight: FontWeight.w600,
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Manajemen Warga',
+                style: TextStyle(
+                  color: _AdminResidentsViewState._ink,
+                  fontSize: 25,
+                  height: 1.2,
+                  letterSpacing: -0.2,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'RT 004 / RW 012 - Kelurahan Harmoni',
+                style: TextStyle(
+                  color: _AdminResidentsViewState._muted,
+                  fontSize: 12,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
         ),
-        SizedBox(height: 4),
-        Text(
-          'RT 004 / RW 012 - Kelurahan Harmoni',
-          style: TextStyle(
-            color: _AdminResidentsViewState._muted,
-            fontSize: 12,
-            height: 1.2,
+        const SizedBox(width: 8),
+        TextButton.icon(
+          key: const ValueKey('admin-resident-dashboard-button'),
+          onPressed: () => context.router.replaceAll([
+            const MainRoute(children: [HomeRoute()]),
+          ]),
+          style: TextButton.styleFrom(
+            foregroundColor: KompakColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            visualDensity: VisualDensity.compact,
           ),
+          icon: const Icon(Icons.home_outlined, size: 18),
+          label: const Text('Dashboard Warga'),
         ),
       ],
     );

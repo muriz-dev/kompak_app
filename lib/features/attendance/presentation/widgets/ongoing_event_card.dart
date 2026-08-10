@@ -4,11 +4,13 @@ import '../../domain/entities/attendance_data.dart';
 class OngoingEventCard extends StatelessWidget {
   final OngoingEvent event;
   final VoidCallback onDetailTap;
+  final VoidCallback onCheckInTap;
 
   const OngoingEventCard({
     super.key,
     required this.event,
     required this.onDetailTap,
+    required this.onCheckInTap,
   });
 
   @override
@@ -133,7 +135,7 @@ class OngoingEventCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: onDetailTap,
+                    onPressed: onCheckInTap,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -142,11 +144,11 @@ class OngoingEventCard extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(
-                      Icons.visibility_outlined,
+                      Icons.face_retouching_natural,
                       color: Colors.white,
                     ),
                     label: const Text(
-                      'Lihat Detail',
+                      'Absensi Sekarang',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

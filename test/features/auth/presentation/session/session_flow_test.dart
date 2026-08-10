@@ -13,7 +13,10 @@ import 'package:kompak_app/core/routes/app_router.dart';
 import 'package:kompak_app/core/routes/main_page.dart';
 import 'package:kompak_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:kompak_app/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:kompak_app/features/auth/domain/entities/session_user.dart';
 import 'package:kompak_app/features/auth/presentation/session/session_cubit.dart';
+import 'package:kompak_app/features/auth/presentation/session/session_navigation.dart';
+import 'package:kompak_app/features/auth/presentation/session/session_state.dart';
 import 'package:kompak_app/features/home/presentation/bloc/home_cubit.dart';
 import 'package:kompak_app/features/events/domain/entities/community_event.dart';
 import 'package:kompak_app/features/events/domain/repositories/community_events_repository.dart';
@@ -85,6 +88,44 @@ class _SessionAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  test('routes active admins to the resident dashboard first', () {
+    const user = SessionUser(
+      id: 'admin-1',
+      name: 'Admin',
+      email: 'admin@example.com',
+      phoneNumber: '081234567890',
+      birthDate: '1980-01-01',
+      balance: 0,
+      leaderboardPoints: 0,
+      status: UserStatus.active,
+      role: UserRole.admin,
+    );
+
+    final routes = routesForSession(const SessionActive(user));
+
+    expect(routes, hasLength(1));
+    expect(routes!.single, isA<MainRoute>());
+  });
+
+  test('routes active citizens to the resident dashboard', () {
+    const user = SessionUser(
+      id: 'citizen-1',
+      name: 'Citizen',
+      email: 'citizen@example.com',
+      phoneNumber: '081234567891',
+      birthDate: '1990-01-01',
+      balance: 0,
+      leaderboardPoints: 0,
+      status: UserStatus.active,
+      role: UserRole.citizen,
+    );
+
+    final routes = routesForSession(const SessionActive(user));
+
+    expect(routes, hasLength(1));
+    expect(routes!.single, isA<MainRoute>());
+  });
+
   Future<
     ({
       SessionCubit cubit,

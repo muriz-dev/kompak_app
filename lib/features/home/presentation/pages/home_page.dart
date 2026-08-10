@@ -11,6 +11,10 @@ import '../bloc/home_state.dart';
 import '../widgets/activity_card.dart';
 import '../widgets/announcement_card.dart';
 import '../widgets/points_card.dart';
+import '../widgets/profile_mode_sheet.dart';
+import '../../../auth/domain/entities/session_user.dart';
+import '../../../auth/presentation/session/session_cubit.dart';
+import '../../../auth/presentation/session/session_state.dart';
 
 const _homeInk = Color(0xFF292D33);
 const _homeMuted = Color(0xFF62676E);
@@ -35,9 +39,7 @@ class HomePage extends StatelessWidget {
                 announcements: state.announcements,
                 onNotificationTap: () =>
                     context.router.push(const NotificationRoute()),
-                onProfileTap: () => context.router.push(const ProfileRoute()),
-                onAdminPreviewTap: () =>
-                    context.router.push(const AdminResidentsRoute()),
+                onProfileTap: () => _showProfileModeSheet(context),
                 onRedeemTap: () => AutoTabsRouter.of(context).setActiveIndex(2),
                 onViewAllActivities: () =>
                     AutoTabsRouter.of(context).setActiveIndex(1),
@@ -78,6 +80,69 @@ class HomePage extends StatelessWidget {
         const SnackBar(content: Text('Detail pengumuman segera tersedia.')),
       );
   }
+
+  Future<void> _showProfileModeSheet(BuildContext context) {
+    final sessionState = context.read<SessionCubit>().state;
+    final activeUser = sessionState is SessionActive ? sessionState.user : null;
+    final router = context.router.root;
+
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Tutup menu profil',
+      barrierColor: Colors.black.withValues(alpha: 0.28),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (dialogContext, _, _) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ProfileModeSheet(
+            name: activeUser?.name ?? 'Profil Anda',
+            email: activeUser?.email ?? '',
+            canAccessAdmin: activeUser?.role == UserRole.admin,
+            onOpenProfile: () {
+              Navigator.of(dialogContext).pop();
+              router.push(const ProfileRoute());
+            },
+            onOpenSettings: () {
+              Navigator.of(dialogContext).pop();
+              router.push(const ProfileRoute());
+            },
+            onSwitchAdmin: () {
+              Navigator.of(dialogContext).pop();
+              router.replaceAll([const AdminResidentsRoute()]);
+            },
+            onSwitchProvider: () {
+              Navigator.of(dialogContext).pop();
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text('Mode akun UMKM segera tersedia.'),
+                  ),
+                );
+            },
+            onLogout: () {
+              Navigator.of(dialogContext).pop();
+              context.read<SessionCubit>().logout();
+            },
+          ),
+        );
+      },
+      transitionBuilder: (_, animation, __, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, -0.08),
+            end: Offset.zero,
+          ).animate(curved),
+          child: FadeTransition(opacity: curved, child: child),
+        );
+      },
+    );
+  }
 }
 
 class HomeDashboardView extends StatelessWidget {
@@ -88,7 +153,6 @@ class HomeDashboardView extends StatelessWidget {
     required this.announcements,
     required this.onNotificationTap,
     required this.onProfileTap,
-    required this.onAdminPreviewTap,
     required this.onRedeemTap,
     required this.onViewAllActivities,
     required this.onActivityReminder,
@@ -101,7 +165,6 @@ class HomeDashboardView extends StatelessWidget {
   final List<Announcement> announcements;
   final VoidCallback onNotificationTap;
   final VoidCallback onProfileTap;
-  final VoidCallback onAdminPreviewTap;
   final VoidCallback onRedeemTap;
   final VoidCallback onViewAllActivities;
   final ValueChanged<UpcomingActivity> onActivityReminder;
@@ -144,27 +207,6 @@ class HomeDashboardView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: OutlinedButton.icon(
-                key: const ValueKey('home-admin-preview-button'),
-                onPressed: onAdminPreviewTap,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _homeBlue,
-                  side: const BorderSide(color: Color(0xFFB9CCFA)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.admin_panel_settings_outlined, size: 20),
-                label: const Text(
-                  'Buka pratinjau admin',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
             PointsCard(userSummary: userSummary, onRedeemTap: onRedeemTap),
             const SizedBox(height: 28),
             _SectionHeader(
