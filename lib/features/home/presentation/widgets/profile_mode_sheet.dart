@@ -3,6 +3,36 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/user_avatar.dart';
 
+enum ProfileAccountMode { resident, admin }
+
+Future<void> showProfileModeMenu({
+  required BuildContext context,
+  required WidgetBuilder builder,
+}) {
+  return showGeneralDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'Tutup menu profil',
+    barrierColor: Colors.black.withValues(alpha: 0.28),
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (dialogContext, _, _) =>
+        Align(alignment: Alignment.topCenter, child: builder(dialogContext)),
+    transitionBuilder: (_, animation, _, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, -0.08),
+          end: Offset.zero,
+        ).animate(curved),
+        child: FadeTransition(opacity: curved, child: child),
+      );
+    },
+  );
+}
+
 class ProfileModeSheet extends StatelessWidget {
   const ProfileModeSheet({
     super.key,
@@ -10,18 +40,22 @@ class ProfileModeSheet extends StatelessWidget {
     required this.email,
     required this.canAccessAdmin,
     required this.onOpenProfile,
-    required this.onSwitchAdmin,
     required this.onSwitchProvider,
     required this.onLogout,
+    this.currentMode = ProfileAccountMode.resident,
+    this.onSwitchResident,
+    this.onSwitchAdmin,
   });
 
   final String name;
   final String email;
   final bool canAccessAdmin;
   final VoidCallback onOpenProfile;
-  final VoidCallback onSwitchAdmin;
   final VoidCallback onSwitchProvider;
   final VoidCallback onLogout;
+  final ProfileAccountMode currentMode;
+  final VoidCallback? onSwitchResident;
+  final VoidCallback? onSwitchAdmin;
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +69,31 @@ class ProfileModeSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _AccountRow(name: name, email: email, onTap: onOpenProfile),
+            _AccountRow(
+              name: name,
+              email: email,
+              accountLabel: currentMode == ProfileAccountMode.admin
+                  ? 'Akun Admin'
+                  : 'Akun Warga',
+              onTap: onOpenProfile,
+            ),
             const _SheetDivider(),
-            if (canAccessAdmin)
+            if (currentMode == ProfileAccountMode.admin &&
+                onSwitchResident != null)
+              _SheetAction(
+                key: const ValueKey('profile-sheet-resident-mode'),
+                icon: Icons.home_outlined,
+                label: 'Beralih ke Warga',
+                onTap: onSwitchResident!,
+              ),
+            if (currentMode == ProfileAccountMode.resident &&
+                canAccessAdmin &&
+                onSwitchAdmin != null)
               _SheetAction(
                 key: const ValueKey('profile-sheet-admin-mode'),
                 icon: Icons.admin_panel_settings_outlined,
                 label: 'Beralih ke Admin',
-                onTap: onSwitchAdmin,
+                onTap: onSwitchAdmin!,
               ),
             _SheetAction(
               key: const ValueKey('profile-sheet-provider-mode'),
@@ -70,11 +121,13 @@ class _AccountRow extends StatelessWidget {
   const _AccountRow({
     required this.name,
     required this.email,
+    required this.accountLabel,
     required this.onTap,
   });
 
   final String name;
   final String email;
+  final String accountLabel;
   final VoidCallback onTap;
 
   @override
@@ -122,7 +175,7 @@ class _AccountRow extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const _AccountPill(label: 'Akun Warga'),
+                    _AccountPill(label: accountLabel),
                   ],
                 ),
               ),

@@ -3,14 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kompak_app/features/home/presentation/widgets/profile_mode_sheet.dart';
 
 void main() {
-  Widget buildSheet({required bool canAccessAdmin}) {
+  Widget buildSheet({
+    required bool canAccessAdmin,
+    ProfileAccountMode currentMode = ProfileAccountMode.resident,
+    VoidCallback? onSwitchResident,
+  }) {
     return MaterialApp(
       home: Scaffold(
         body: ProfileModeSheet(
           name: 'Olivia Rhye',
           email: 'olivia@example.com',
           canAccessAdmin: canAccessAdmin,
+          currentMode: currentMode,
           onOpenProfile: () {},
+          onSwitchResident: onSwitchResident,
           onSwitchAdmin: () {},
           onSwitchProvider: () {},
           onLogout: () {},
@@ -39,5 +45,24 @@ void main() {
 
     expect(find.text('Beralih ke Admin'), findsNothing);
     expect(find.text('Beralih ke akun UMKM'), findsOneWidget);
+  });
+
+  testWidgets('shows the resident switch while in admin mode', (tester) async {
+    var switchedToResident = false;
+    await tester.pumpWidget(
+      buildSheet(
+        canAccessAdmin: true,
+        currentMode: ProfileAccountMode.admin,
+        onSwitchResident: () => switchedToResident = true,
+      ),
+    );
+
+    expect(find.text('Akun Admin'), findsOneWidget);
+    expect(find.text('Beralih ke Warga'), findsOneWidget);
+    expect(find.text('Beralih ke Admin'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('profile-sheet-resident-mode')));
+
+    expect(switchedToResident, isTrue);
   });
 }

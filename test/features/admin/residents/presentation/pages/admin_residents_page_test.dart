@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kompak_app/core/auth/session_invalidation_bus.dart';
 import 'package:kompak_app/core/auth/session_token_store.dart';
@@ -12,6 +13,29 @@ import 'package:kompak_app/features/admin/residents/data/datasources/admin_resid
 import 'package:kompak_app/features/admin/residents/data/repositories/admin_residents_repository_impl.dart';
 import 'package:kompak_app/features/admin/residents/presentation/bloc/admin_residents_cubit.dart';
 import 'package:kompak_app/features/admin/residents/presentation/pages/admin_residents_page.dart';
+import 'package:kompak_app/features/auth/domain/entities/session_user.dart';
+import 'package:kompak_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kompak_app/features/auth/presentation/session/session_cubit.dart';
+
+const _adminUser = SessionUser(
+  id: 'admin-1',
+  name: 'Admin RT',
+  email: 'admin@example.com',
+  phoneNumber: '081234567890',
+  birthDate: '1990-01-01',
+  balance: 0,
+  leaderboardPoints: 0,
+  status: UserStatus.active,
+  role: UserRole.admin,
+);
+
+class _StaticAuthRepository implements AuthRepository {
+  @override
+  Future<SessionUser?> restoreSession() async => _adminUser;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class _MemoryTokenStore implements SessionTokenStore {
   _MemoryTokenStore(this.token);
@@ -123,9 +147,10 @@ void main() {
   Future<_ResidentsAdapter> pumpPage(
     WidgetTester tester, {
     bool failReads = false,
+    Size size = const Size(390, 1200),
   }) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.physicalSize = size;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -133,6 +158,8 @@ void main() {
     final adapter = _ResidentsAdapter(failReads: failReads);
     final tokenStore = _MemoryTokenStore('admin-token');
     final invalidationBus = SessionInvalidationBus();
+    final sessionCubit = SessionCubit(_StaticAuthRepository(), invalidationBus);
+    await sessionCubit.restoreSession();
     final dio = _TestDioModule().dio(tokenStore, invalidationBus)
       ..httpClientAdapter = adapter;
     final repository = AdminResidentsRepositoryImpl(
@@ -143,11 +170,17 @@ void main() {
     );
 
     addTearDown(() async {
+      await sessionCubit.close();
       invalidationBus.dispose();
       await getIt.reset();
     });
 
-    await tester.pumpWidget(const MaterialApp(home: AdminResidentsPage()));
+    await tester.pumpWidget(
+      BlocProvider.value(
+        value: sessionCubit,
+        child: const MaterialApp(home: AdminResidentsPage()),
+      ),
+    );
     await tester.pumpAndSettle();
     return adapter;
   }
@@ -157,14 +190,22 @@ void main() {
   ) async {
     final adapter = await pumpPage(tester);
 
-    expect(find.text('Manajemen Warga'), findsOneWidget);
-    expect(find.text('RT 004 / RW 012 - Kelurahan Harmoni'), findsOneWidget);
+    expect(find.text('Dashboard Admin'), findsOneWidget);
+    expect(
+      find.text('Kelola warga, kegiatan, dan layanan komunitas.'),
+      findsOneWidget,
+    );
+    expect(find.text('RT 004 / RW 012 · Kelurahan Harmoni'), findsOneWidget);
+    expect(find.text('Admin'), findsOneWidget);
+    expect(find.text('AR'), findsOneWidget);
+    expect(find.text('Ringkasan Warga'), findsOneWidget);
     expect(find.text('Total Warga'), findsOneWidget);
     expect(find.text('Menunggu'), findsWidgets);
     expect(find.text('Warga Aktif'), findsOneWidget);
     expect(find.text('Total Saldo Poin'), findsOneWidget);
     expect(find.text('2.1k'), findsOneWidget);
-    expect(find.text('Manajemen'), findsOneWidget);
+    expect(find.text('Menu Pengelolaan'), findsOneWidget);
+    expect(find.text('Daftar Warga'), findsOneWidget);
     expect(find.text('Tambah Warga'), findsOneWidget);
     expect(find.text('Pengumuman'), findsOneWidget);
     expect(find.text('Provider'), findsOneWidget);
@@ -178,6 +219,31 @@ void main() {
     expect(adapter.requests.single.method, 'GET');
     expect(adapter.requests.single.path, '/users');
     expect(adapter.lastAuthorization, 'Bearer admin-token');
+    expect(find.text('Manajemen Warga'), findsNothing);
+    expect(find.text('Dashboard Warga'), findsNothing);
+  });
+
+  testWidgets('opens the admin account menu from the shared-style header', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const ValueKey('admin-profile-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Akun Admin'), findsOneWidget);
+    expect(find.text('Beralih ke Warga'), findsOneWidget);
+    expect(find.text('Beralih ke Admin'), findsNothing);
+  });
+
+  testWidgets('keeps the dashboard header usable on a narrow phone', (
+    tester,
+  ) async {
+    await pumpPage(tester, size: const Size(320, 700));
+
+    expect(find.byKey(const ValueKey('admin-mode-badge')), findsOneWidget);
+    expect(find.byKey(const ValueKey('admin-profile-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('searches the server-backed resident list', (tester) async {

@@ -101,57 +101,33 @@ class HomePage extends StatelessWidget {
     final activeUser = sessionState is SessionActive ? sessionState.user : null;
     final router = context.router.root;
 
-    return showGeneralDialog<void>(
+    return showProfileModeMenu(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Tutup menu profil',
-      barrierColor: Colors.black.withValues(alpha: 0.28),
-      transitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (dialogContext, _, _) {
-        return Align(
-          alignment: Alignment.topCenter,
-          child: ProfileModeSheet(
-            name: activeUser?.name ?? 'Profil Anda',
-            email: activeUser?.email ?? '',
-            canAccessAdmin: activeUser?.role == UserRole.admin,
-            onOpenProfile: () {
-              Navigator.of(dialogContext).pop();
-              router.push(const ProfileRoute());
-            },
-            onSwitchAdmin: () {
-              Navigator.of(dialogContext).pop();
-              router.replaceAll([const AdminResidentsRoute()]);
-            },
-            onSwitchProvider: () {
-              Navigator.of(dialogContext).pop();
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  const SnackBar(
-                    content: Text('Mode akun UMKM segera tersedia.'),
-                  ),
-                );
-            },
-            onLogout: () {
-              Navigator.of(dialogContext).pop();
-              context.read<SessionCubit>().logout();
-            },
-          ),
-        );
-      },
-      transitionBuilder: (_, animation, _, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, -0.08),
-            end: Offset.zero,
-          ).animate(curved),
-          child: FadeTransition(opacity: curved, child: child),
-        );
-      },
+      builder: (dialogContext) => ProfileModeSheet(
+        name: activeUser?.name ?? 'Profil Anda',
+        email: activeUser?.email ?? '',
+        canAccessAdmin: activeUser?.role == UserRole.admin,
+        onOpenProfile: () {
+          Navigator.of(dialogContext).pop();
+          router.push(const ProfileRoute());
+        },
+        onSwitchAdmin: () {
+          Navigator.of(dialogContext).pop();
+          router.replaceAll([const AdminResidentsRoute()]);
+        },
+        onSwitchProvider: () {
+          Navigator.of(dialogContext).pop();
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(content: Text('Mode akun UMKM segera tersedia.')),
+            );
+        },
+        onLogout: () {
+          Navigator.of(dialogContext).pop();
+          context.read<SessionCubit>().logout();
+        },
+      ),
     );
   }
 }

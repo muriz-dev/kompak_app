@@ -6,6 +6,11 @@ import 'package:intl/intl.dart';
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/routes/app_router.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../auth/domain/entities/session_user.dart';
+import '../../../../auth/presentation/session/session_cubit.dart';
+import '../../../../auth/presentation/session/session_state.dart';
+import '../../../../home/presentation/widgets/profile_mode_sheet.dart';
+import '../../../shared/presentation/widgets/admin_dashboard_header.dart';
 import '../../domain/entities/resident.dart';
 import '../bloc/admin_residents_cubit.dart';
 import '../bloc/admin_residents_state.dart';
@@ -29,15 +34,27 @@ class AdminResidentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessionState = context.watch<SessionCubit>().state;
+    final activeUser = sessionState is SessionActive ? sessionState.user : null;
+
+    if (activeUser == null) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFFEFFFF),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return BlocProvider(
       create: (_) => getIt<AdminResidentsCubit>()..loadResidents(),
-      child: const _AdminResidentsView(),
+      child: _AdminResidentsView(user: activeUser),
     );
   }
 }
 
 class _AdminResidentsView extends StatefulWidget {
-  const _AdminResidentsView();
+  const _AdminResidentsView({required this.user});
+
+  final SessionUser user;
 
   @override
   State<_AdminResidentsView> createState() => _AdminResidentsViewState();
@@ -94,15 +111,24 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
                 children: [
-                  const _Header(),
-                  const SizedBox(height: 18),
+                  AdminDashboardHeader(
+                    userName: widget.user.name,
+                    onProfileTap: _showAdminProfileMenu,
+                  ),
+                  const SizedBox(height: 24),
+                  const _DashboardIntro(),
+                  const SizedBox(height: 24),
+                  const _SectionTitle('Ringkasan Warga'),
+                  const SizedBox(height: 10),
                   _Summary(
                     residents: residents,
                     loading: state is AdminResidentsLoading,
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
                   _ManagementGrid(onSelected: _handleManagementAction),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
+                  const _SectionTitle('Daftar Warga'),
+                  const SizedBox(height: 10),
                   TextField(
                     key: const ValueKey('resident-search'),
                     controller: _searchController,
@@ -338,6 +364,40 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
     _showMessage('$label belum tersedia.');
   }
 
+  Future<void> _showAdminProfileMenu() {
+    return showProfileModeMenu(
+      context: context,
+      builder: (dialogContext) => ProfileModeSheet(
+        name: widget.user.name,
+        email: widget.user.email,
+        canAccessAdmin: true,
+        currentMode: ProfileAccountMode.admin,
+        onOpenProfile: () {
+          Navigator.of(dialogContext).pop();
+          context.router.root.push(const ProfileRoute());
+        },
+        onSwitchResident: () {
+          Navigator.of(dialogContext).pop();
+          context.router.root.replaceAll([
+            const MainRoute(children: [HomeRoute()]),
+          ]);
+        },
+        onSwitchProvider: () {
+          Navigator.of(dialogContext).pop();
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(content: Text('Mode akun UMKM segera tersedia.')),
+            );
+        },
+        onLogout: () {
+          Navigator.of(dialogContext).pop();
+          context.read<SessionCubit>().logout();
+        },
+      ),
+    );
+  }
+
   Future<void> _confirmStatusChange(
     Resident resident,
     ResidentStatus status,
@@ -399,55 +459,65 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header();
+class _DashboardIntro extends StatelessWidget {
+  const _DashboardIntro();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Manajemen Warga',
-                style: TextStyle(
-                  color: _AdminResidentsViewState._ink,
-                  fontSize: 25,
-                  height: 1.2,
-                  letterSpacing: -0.2,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'RT 004 / RW 012 - Kelurahan Harmoni',
-                style: TextStyle(
-                  color: _AdminResidentsViewState._muted,
-                  fontSize: 12,
-                  height: 1.2,
-                ),
-              ),
-            ],
+        Text(
+          'Dashboard Admin',
+          style: TextStyle(
+            color: _AdminResidentsViewState._ink,
+            fontSize: 25,
+            height: 1.2,
+            letterSpacing: -0.2,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(width: 8),
-        TextButton.icon(
-          key: const ValueKey('admin-resident-dashboard-button'),
-          onPressed: () => context.router.replaceAll([
-            const MainRoute(children: [HomeRoute()]),
-          ]),
-          style: TextButton.styleFrom(
-            foregroundColor: KompakColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            visualDensity: VisualDensity.compact,
+        SizedBox(height: 6),
+        Text(
+          'Kelola warga, kegiatan, dan layanan komunitas.',
+          style: TextStyle(
+            color: _AdminResidentsViewState._muted,
+            fontSize: 14,
+            height: 1.35,
           ),
-          icon: const Icon(Icons.home_outlined, size: 18),
-          label: const Text('Dashboard Warga'),
+        ),
+        SizedBox(height: 6),
+        Text(
+          'RT 004 / RW 012 · Kelurahan Harmoni',
+          style: TextStyle(
+            color: KompakColors.primary,
+            fontSize: 12,
+            height: 1.2,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: _AdminResidentsViewState._ink,
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
@@ -551,17 +621,7 @@ class _ManagementGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text(
-            'Manajemen',
-            style: TextStyle(
-              color: _AdminResidentsViewState._ink,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
+        const _SectionTitle('Menu Pengelolaan'),
         const SizedBox(height: 10),
         GridView.builder(
           shrinkWrap: true,
