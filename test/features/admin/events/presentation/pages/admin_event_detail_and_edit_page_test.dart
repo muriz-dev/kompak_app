@@ -46,6 +46,46 @@ void main() {
     expect(find.text('Olivia Rhye'), findsOneWidget);
     expect(find.text('08123456789'), findsOneWidget);
 
+    final pointsCard = find.byKey(
+      const ValueKey('metric-card-surface-Point Terdistribusi'),
+    );
+    final participationCard = find.byKey(
+      const ValueKey('metric-card-surface-Total Partisipasi'),
+    );
+    expect(tester.getSize(pointsCard).height, 112);
+    expect(
+      tester.getSize(pointsCard).width,
+      tester.getSize(participationCard).width,
+    );
+    expect(
+      (tester.widget<Container>(pointsCard).decoration! as BoxDecoration).color,
+      KompakColors.primary,
+    );
+    expect(
+      (tester.widget<Container>(participationCard).decoration! as BoxDecoration)
+          .color,
+      KompakColors.success,
+    );
+    expect(
+      tester.widget<Text>(find.text('Point Terdistribusi')).style?.color,
+      Colors.white,
+    );
+    expect(
+      tester.widget<Text>(find.text('50%')).style?.color,
+      KompakColors.success,
+    );
+
+    final manualButton = find.byKey(const ValueKey('manual-attendance-button'));
+    final massButton = find.byKey(const ValueKey('mass-attendance-button'));
+    expect(
+      tester.getTopLeft(manualButton).dy,
+      lessThan(tester.getTopLeft(massButton).dy),
+    );
+    expect(
+      tester.getSize(manualButton).width,
+      tester.getSize(massButton).width,
+    );
+
     await tester.tap(find.byKey(const ValueKey('documentation-attendance-1')));
     await tester.pumpAndSettle();
 

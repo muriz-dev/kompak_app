@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/routes/app_router.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../domain/entities/admin_event.dart';
 import '../../domain/entities/admin_event_overview.dart';
 import '../bloc/admin_event_detail_cubit.dart';
@@ -53,10 +54,10 @@ class AdminEventDetailView extends StatefulWidget {
 }
 
 class _AdminEventDetailViewState extends State<AdminEventDetailView> {
-  static const _ink = Color(0xFF2F3236);
-  static const _muted = Color(0xFF7A7C80);
-  static const _blue = Color(0xFF2563EB);
-  static const _green = Color(0xFF12B76A);
+  static const _ink = KompakColors.ink;
+  static const _muted = KompakColors.mutedInk;
+  static const _blue = KompakColors.primary;
+  static const _green = KompakColors.success;
   static const _pageSize = 5;
 
   int _page = 0;
@@ -72,9 +73,7 @@ class _AdminEventDetailViewState extends State<AdminEventDetailView> {
             Expanded(
               child: BlocBuilder<AdminEventDetailCubit, AdminEventDetailState>(
                 builder: (context, state) => switch (state) {
-                  AdminEventDetailLoading() => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  AdminEventDetailLoading() => const _DetailLoading(),
                   AdminEventDetailFailure(:final message) => _DetailFailure(
                     message: message,
                     onRetry: () => context
@@ -114,23 +113,23 @@ class _AdminEventDetailViewState extends State<AdminEventDetailView> {
             child: ListView(
               key: const ValueKey('admin-event-detail-scroll'),
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
               children: [
                 Text(
                   event.title,
                   style: const TextStyle(
                     color: _ink,
-                    fontSize: 22,
-                    height: 1.25,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 23,
+                    height: 1.2,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 7),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     const Icon(
                       Icons.calendar_today_outlined,
-                      size: 16,
+                      size: 18,
                       color: _blue,
                     ),
                     const SizedBox(width: 8),
@@ -139,27 +138,31 @@ class _AdminEventDetailViewState extends State<AdminEventDetailView> {
                         '${_dateLabel(event.eventDate)} • '
                         '${DateFormat('HH:mm').format(event.attendanceStartTime.toLocal())}–'
                         '${DateFormat('HH:mm').format(event.attendanceEndTime.toLocal())}',
-                        style: const TextStyle(color: _muted, fontSize: 13),
+                        style: const TextStyle(
+                          color: _muted,
+                          fontSize: 14,
+                          height: 1.25,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: _MetricCard(
-                        icon: Icons.auto_awesome_rounded,
+                        key: const ValueKey('distributed-points-card'),
                         color: _blue,
                         value:
-                            '+${NumberFormat.decimalPattern('id_ID').format(overview.distributedPoints)}',
+                            '+${NumberFormat.decimalPattern('en_US').format(overview.distributedPoints)}',
                         label: 'Point Terdistribusi',
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: _MetricCard(
-                        icon: Icons.groups_2_outlined,
+                        key: const ValueKey('total-participation-card'),
                         color: _green,
                         value: overview.activeCitizenCount > 0
                             ? '${overview.attendanceCount}/${overview.activeCitizenCount}'
@@ -171,7 +174,7 @@ class _AdminEventDetailViewState extends State<AdminEventDetailView> {
                 ),
                 const SizedBox(height: 16),
                 _AttendanceSummary(overview: overview),
-                const SizedBox(height: 22),
+                const SizedBox(height: 24),
                 _SectionTitle(
                   title: 'Dokumentasi Kegiatan',
                   trailing: overview.documentation.isEmpty
@@ -184,33 +187,33 @@ class _AdminEventDetailViewState extends State<AdminEventDetailView> {
                   onOpen: (index) =>
                       _openDocumentation(overview.documentation, index),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 22),
                 const _SectionTitle(title: 'Daftar Kehadiran'),
                 const SizedBox(height: 10),
                 if (visible.isEmpty)
                   const _EmptyAttendance()
                 else
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFF0F1F2)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        for (var index = 0; index < visible.length; index++)
-                          _AttendanceRow(
-                            attendance: visible[index],
-                            showDivider: index < visible.length - 1,
+                  Column(
+                    children: [
+                      for (var index = 0; index < visible.length; index++)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: index < visible.length - 1 ? 8 : 0,
                           ),
-                      ],
-                    ),
+                          child: _AttendanceRow(
+                            attendance: visible[index],
+                            colorIndex: start + index,
+                          ),
+                        ),
+                    ],
                   ),
                 if (pageCount > 1) ...[
                   const SizedBox(height: 12),
                   _DetailPagination(
                     page: page,
                     pageCount: pageCount,
+                    visibleCount: visible.length,
+                    totalCount: attendees.length,
                     onPrevious: page == 0
                         ? null
                         : () => setState(() => _page = page - 1),
@@ -221,19 +224,21 @@ class _AdminEventDetailViewState extends State<AdminEventDetailView> {
                 ],
                 const SizedBox(height: 20),
                 SizedBox(
-                  height: 46,
-                  child: OutlinedButton.icon(
+                  height: 48,
+                  child: FilledButton(
                     key: const ValueKey('edit-event-button'),
                     onPressed: () => _openEdit(context, overview),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _blue,
-                      side: const BorderSide(color: _blue),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _blue,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('Edit Kegiatan'),
+                    child: const Text(
+                      'Edit Kegiatan',
+                      style: TextStyle(fontSize: 15),
+                    ),
                   ),
                 ),
               ],
@@ -305,18 +310,18 @@ class _DetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 64,
+      height: 76,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.only(left: 12),
               child: IconButton(
                 tooltip: 'Kembali',
                 onPressed: onBack,
-                icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                icon: const Icon(Icons.chevron_left_rounded, size: 30),
               ),
             ),
           ),
@@ -324,8 +329,8 @@ class _DetailHeader extends StatelessWidget {
             'Detail Kegiatan',
             style: TextStyle(
               color: _AdminEventDetailViewState._ink,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
+              fontSize: 21,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -336,13 +341,12 @@ class _DetailHeader extends StatelessWidget {
 
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
-    required this.icon,
     required this.color,
     required this.value,
     required this.label,
+    super.key,
   });
 
-  final IconData icon;
   final Color color;
   final String value;
   final String label;
@@ -350,48 +354,41 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 94,
-      padding: const EdgeInsets.all(13),
+      key: ValueKey('metric-card-surface-$label'),
+      height: 112,
+      padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(9),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.2,
+              fontWeight: FontWeight.w600,
             ),
-            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  maxLines: 2,
-                  style: const TextStyle(
-                    color: _AdminEventDetailViewState._muted,
-                    fontSize: 10,
-                    height: 1.2,
-                  ),
-                ),
-              ],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                height: 1,
+                fontWeight: FontWeight.w400,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
         ],
@@ -409,10 +406,11 @@ class _AttendanceSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final percentage = (overview.attendanceRate * 100).round();
     return Container(
-      padding: const EdgeInsets.all(16),
+      key: const ValueKey('attendance-summary-card'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFF0F1F2)),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -425,7 +423,8 @@ class _AttendanceSummary extends StatelessWidget {
                   'Ringkasan Kehadiran',
                   style: TextStyle(
                     color: _AdminEventDetailViewState._ink,
-                    fontSize: 13,
+                    fontSize: 16,
+                    height: 1.2,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -433,41 +432,42 @@ class _AttendanceSummary extends StatelessWidget {
               Text(
                 overview.activeCitizenCount > 0 ? '$percentage%' : '—',
                 style: const TextStyle(
-                  color: _AdminEventDetailViewState._blue,
-                  fontSize: 16,
+                  color: _AdminEventDetailViewState._green,
+                  fontSize: 18,
+                  height: 1.2,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              minHeight: 8,
+              minHeight: 10,
               value: overview.attendanceRate,
-              backgroundColor: const Color(0xFFE7ECF5),
+              backgroundColor: const Color(0xFFE8EEFD),
               color: _AdminEventDetailViewState._blue,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           Row(
             children: [
               Text(
                 '${overview.attendanceCount} Warga',
                 style: const TextStyle(
-                  color: _AdminEventDetailViewState._muted,
-                  fontSize: 10,
+                  color: _AdminEventDetailViewState._ink,
+                  fontSize: 11,
                 ),
               ),
               const Spacer(),
               Text(
                 overview.activeCitizenCount > 0
-                    ? 'Target ${overview.activeCitizenCount} Warga aktif'
+                    ? 'Target: ${overview.activeCitizenCount} Warga'
                     : 'Belum ada warga aktif',
                 style: const TextStyle(
-                  color: _AdminEventDetailViewState._muted,
-                  fontSize: 10,
+                  color: _AdminEventDetailViewState._ink,
+                  fontSize: 11,
                 ),
               ),
             ],
@@ -493,7 +493,7 @@ class _SectionTitle extends StatelessWidget {
             title,
             style: const TextStyle(
               color: _AdminEventDetailViewState._ink,
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -540,11 +540,11 @@ class _DocumentationGrid extends StatelessWidget {
 
     final visible = documentation.take(3).toList(growable: false);
     return SizedBox(
-      height: 116,
+      height: 170,
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _DocumentationTile(
               documentation: visible.first,
               onTap: () => onOpen(0),
@@ -638,10 +638,10 @@ class _DocumentationTile extends StatelessWidget {
 }
 
 class _AttendanceRow extends StatelessWidget {
-  const _AttendanceRow({required this.attendance, required this.showDivider});
+  const _AttendanceRow({required this.attendance, required this.colorIndex});
 
   final AdminEventAttendance attendance;
-  final bool showDivider;
+  final int colorIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -653,63 +653,66 @@ class _AttendanceRow extends StatelessWidget {
         .take(2)
         .map((part) => part[0].toUpperCase())
         .join();
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: const Color(0xFFE7EEFF),
-                foregroundColor: _AdminEventDetailViewState._blue,
-                child: Text(
-                  initials.isEmpty ? 'W' : initials,
+    const avatarColors = [
+      Color(0xFF7CEFC3),
+      Color(0xFFFFD9B0),
+      Color(0xFFDCE3FF),
+      Color(0xFFBFD2FF),
+      Color(0xFFFFC5C5),
+    ];
+    final avatarColor = avatarColors[colorIndex % avatarColors.length];
+    return Container(
+      height: 66,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: avatarColor,
+            foregroundColor: _AdminEventDetailViewState._ink,
+            child: Text(
+              initials.isEmpty ? 'W' : initials,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    color: _AdminEventDetailViewState._ink,
+                    fontSize: 14,
+                    height: 1.2,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _AdminEventDetailViewState._ink,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      attendance.attendee.secondaryLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _AdminEventDetailViewState._muted,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 3),
+                Text(
+                  attendance.attendee.secondaryLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _AdminEventDetailViewState._muted,
+                    fontSize: 11,
+                    height: 1.2,
+                  ),
                 ),
-              ),
-              const Icon(
-                Icons.check_circle_rounded,
-                color: _AdminEventDetailViewState._green,
-                size: 18,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        if (showDivider)
-          const Divider(height: 1, indent: 58, color: Color(0xFFF0F1F2)),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -736,35 +739,105 @@ class _DetailPagination extends StatelessWidget {
   const _DetailPagination({
     required this.page,
     required this.pageCount,
+    required this.visibleCount,
+    required this.totalCount,
     this.onPrevious,
     this.onNext,
   });
 
   final int page;
   final int pageCount;
+  final int visibleCount;
+  final int totalCount;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      IconButton(
-        onPressed: onPrevious,
-        icon: const Icon(Icons.chevron_left_rounded),
-      ),
-      Text(
-        '${page + 1} / $pageCount',
-        style: const TextStyle(
-          color: _AdminEventDetailViewState._muted,
-          fontSize: 12,
+  Widget build(BuildContext context) => Container(
+    constraints: const BoxConstraints(minHeight: 72),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFE8EEFD),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Menampilkan $visibleCount\ndari $totalCount Warga',
+            style: const TextStyle(
+              color: _AdminEventDetailViewState._muted,
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        _PaginationButton(
+          icon: Icons.chevron_left_rounded,
+          onPressed: onPrevious,
+        ),
+        const SizedBox(width: 8),
+        _PaginationButton(
+          label: '${page + 1}',
+          selected: true,
+          onPressed: () {},
+        ),
+        if (page + 1 < pageCount) ...[
+          const SizedBox(width: 8),
+          _PaginationButton(label: '${page + 2}', onPressed: onNext),
+        ],
+        const SizedBox(width: 8),
+        _PaginationButton(icon: Icons.chevron_right_rounded, onPressed: onNext),
+      ],
+    ),
+  );
+}
+
+class _PaginationButton extends StatelessWidget {
+  const _PaginationButton({
+    this.label,
+    this.icon,
+    this.selected = false,
+    this.onPressed,
+  });
+
+  final String? label;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 40,
+    height: 40,
+    child: Material(
+      color: selected ? KompakColors.success : Colors.white,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onPressed,
+        child: Center(
+          child: icon != null
+              ? Icon(
+                  icon,
+                  color: onPressed == null
+                      ? const Color(0xFF9AA3B2)
+                      : _AdminEventDetailViewState._ink,
+                )
+              : Text(
+                  label!,
+                  style: TextStyle(
+                    color: selected
+                        ? Colors.white
+                        : _AdminEventDetailViewState._ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
         ),
       ),
-      IconButton(
-        onPressed: onNext,
-        icon: const Icon(Icons.chevron_right_rounded),
-      ),
-    ],
+    ),
   );
 }
 
@@ -781,28 +854,101 @@ class _AttendanceActions extends StatelessWidget {
     ),
     child: Padding(
       padding: const EdgeInsets.fromLTRB(24, 10, 24, 12),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: SizedBox(
-              height: 44,
-              child: OutlinedButton(
-                onPressed: onUnavailable,
-                child: const Text('Absensi Manual'),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: FilledButton(
+              key: const ValueKey('manual-attendance-button'),
+              onPressed: onUnavailable,
+              style: FilledButton.styleFrom(
+                backgroundColor: KompakColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Absensi Manual',
+                style: TextStyle(fontSize: 15),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: SizedBox(
-              height: 44,
-              child: FilledButton(
-                onPressed: onUnavailable,
-                child: const Text('Absensi Massal'),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: FilledButton(
+              key: const ValueKey('mass-attendance-button'),
+              onPressed: onUnavailable,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFE8EEFD),
+                foregroundColor: KompakColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Absensi Massal',
+                style: TextStyle(fontSize: 15),
               ),
             ),
           ),
         ],
+      ),
+    ),
+  );
+}
+
+class _DetailLoading extends StatelessWidget {
+  const _DetailLoading();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Memuat detail kegiatan',
+    child: ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+      children: [
+        const _SkeletonBlock(width: 220, height: 26),
+        const SizedBox(height: 10),
+        const _SkeletonBlock(width: 170, height: 18),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            const Expanded(child: _SkeletonBlock(height: 112)),
+            const SizedBox(width: 16),
+            const Expanded(child: _SkeletonBlock(height: 112)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const _SkeletonBlock(height: 104),
+        const SizedBox(height: 24),
+        const _SkeletonBlock(width: 190, height: 22),
+        const SizedBox(height: 12),
+        const _SkeletonBlock(height: 170),
+      ],
+    ),
+  );
+}
+
+class _SkeletonBlock extends StatelessWidget {
+  const _SkeletonBlock({this.width, required this.height});
+
+  final double? width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: Container(
+      width: width ?? double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F2F5),
+        borderRadius: BorderRadius.circular(10),
       ),
     ),
   );
