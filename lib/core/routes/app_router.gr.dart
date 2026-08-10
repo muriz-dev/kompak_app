@@ -27,6 +27,22 @@ class ActivityDetailRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [AdminEventsPage]
+class AdminEventsRoute extends PageRouteInfo<void> {
+  const AdminEventsRoute({List<PageRouteInfo>? children})
+    : super(AdminEventsRoute.name, initialChildren: children);
+
+  static const String name = 'AdminEventsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const AdminEventsPage();
+    },
+  );
+}
+
+/// generated route for
 /// [AdminResidentsPage]
 class AdminResidentsRoute extends PageRouteInfo<void> {
   const AdminResidentsRoute({List<PageRouteInfo>? children})

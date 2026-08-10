@@ -323,7 +323,7 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
 
   void _handleManagementAction(_ManagementAction action) {
     if (action == _ManagementAction.events) {
-      context.router.push(const CreateEventRoute());
+      context.router.push(const AdminEventsRoute());
       return;
     }
 

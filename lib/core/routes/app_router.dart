@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/admin/residents/presentation/pages/admin_residents_page.dart';
+import '../../features/admin/events/presentation/pages/admin_events_page.dart';
 import '../../features/admin/events/presentation/pages/create_event_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -54,6 +55,11 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: AdminResidentsRoute.page,
       path: '/admin/residents',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminEventsRoute.page,
+      path: '/admin/events',
       guards: [_adminSessionGuard],
     ),
     AutoRoute(
