@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/routes/app_router.dart';
+import '../../domain/entities/attendance_record.dart';
 import '../bloc/attendance_cubit.dart';
 import '../bloc/attendance_state.dart';
 import '../widgets/attendance_stats_card.dart';
@@ -147,6 +149,24 @@ class AttendancePage extends StatelessWidget {
                             );
                           },
                         ),
+                      const SizedBox(height: 32),
+                      const Text(
+                        'Riwayat Absensi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (state.history.isEmpty)
+                        const _EmptyEventMessage(
+                          key: ValueKey('attendance-empty-history'),
+                          message: 'Belum ada riwayat absensi.',
+                        )
+                      else
+                        ...state.history.map(
+                          (record) => _AttendanceHistoryTile(record: record),
+                        ),
                     ],
                   ),
                 );
@@ -155,6 +175,67 @@ class AttendancePage extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AttendanceHistoryTile extends StatelessWidget {
+  const _AttendanceHistoryTile({required this.record});
+
+  final AttendanceRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    final verified = record.verifiedAt.toLocal();
+    return Container(
+      key: ValueKey('attendance-history-${record.id}'),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FB),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE7F8F0),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check_rounded, color: Color(0xFF10B981)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.eventTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  DateFormat('dd MMM yyyy, HH:mm').format(verified),
+                  style: const TextStyle(
+                    color: Color(0xFF62676E),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '+${record.pointsEarned} Pts',
+            style: const TextStyle(
+              color: Color(0xFFF59E0B),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

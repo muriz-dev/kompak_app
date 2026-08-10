@@ -163,6 +163,78 @@ class AttendanceRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [AttendanceScannerPage]
+class AttendanceScannerRoute extends PageRouteInfo<AttendanceScannerRouteArgs> {
+  AttendanceScannerRoute({
+    required String eventId,
+    AttendanceLocationService locationService =
+        const GeolocatorAttendanceLocationService(),
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AttendanceScannerRoute.name,
+         args: AttendanceScannerRouteArgs(
+           eventId: eventId,
+           locationService: locationService,
+           key: key,
+         ),
+         rawPathParams: {'eventId': eventId},
+         initialChildren: children,
+       );
+
+  static const String name = 'AttendanceScannerRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<AttendanceScannerRouteArgs>(
+        orElse: () => AttendanceScannerRouteArgs(
+          eventId: pathParams.getString('eventId'),
+        ),
+      );
+      return AttendanceScannerPage(
+        eventId: args.eventId,
+        locationService: args.locationService,
+        key: args.key,
+      );
+    },
+  );
+}
+
+class AttendanceScannerRouteArgs {
+  const AttendanceScannerRouteArgs({
+    required this.eventId,
+    this.locationService = const GeolocatorAttendanceLocationService(),
+    this.key,
+  });
+
+  final String eventId;
+
+  final AttendanceLocationService locationService;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'AttendanceScannerRouteArgs{eventId: $eventId, locationService: $locationService, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AttendanceScannerRouteArgs) return false;
+    return eventId == other.eventId &&
+        locationService == other.locationService &&
+        key == other.key;
+  }
+
+  @override
+  int get hashCode =>
+      eventId.hashCode ^ locationService.hashCode ^ key.hashCode;
+}
+
+/// generated route for
 /// [BlockedAccountPage]
 class BlockedAccountRoute extends PageRouteInfo<void> {
   const BlockedAccountRoute({List<PageRouteInfo>? children})

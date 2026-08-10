@@ -4,13 +4,17 @@ import 'package:injectable/injectable.dart';
 import '../../../events/domain/entities/community_event.dart';
 import '../../../events/domain/repositories/community_events_repository.dart';
 import '../../domain/entities/attendance_data.dart';
+import '../../domain/entities/attendance_record.dart';
+import '../../domain/repositories/attendance_repository.dart';
 import 'attendance_state.dart';
 
 @injectable
 class AttendanceCubit extends Cubit<AttendanceState> {
-  AttendanceCubit(this._eventsRepository) : super(AttendanceLoading());
+  AttendanceCubit(this._eventsRepository, this._attendanceRepository)
+    : super(AttendanceLoading());
 
   final CommunityEventsRepository _eventsRepository;
+  final AttendanceRepository _attendanceRepository;
 
   Future<void> loadAttendanceData() async {
     emit(AttendanceLoading());
@@ -18,14 +22,18 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final results = await Future.wait([
         _eventsRepository.getEvents(EventTimeframe.ongoing),
         _eventsRepository.getEvents(EventTimeframe.upcoming),
+        _attendanceRepository.getMyAttendances(),
       ]);
-      final ongoingEvents = results[0];
-      final upcomingEvents = results[1];
+      final ongoingEvents = results[0] as List<CommunityEvent>;
+      final upcomingEvents = results[1] as List<CommunityEvent>;
+      final history = results[2] as List<AttendanceRecord>;
       final now = DateTime.now();
 
       final stats = AttendanceStats(
-        // Attendance history will replace this value in the check-in slice.
-        totalEventsAttended: 0,
+        totalEventsAttended: history.where((record) {
+          final verified = record.verifiedAt.toLocal();
+          return verified.year == now.year && verified.month == now.month;
+        }).length,
         potentialPoints: [
           ...ongoingEvents,
           ...upcomingEvents,
@@ -44,6 +52,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           stats: stats,
           ongoingEvent: ongoingEvent,
           upcomingEvents: upcomingItems,
+          history: history,
         ),
       );
     } catch (error) {

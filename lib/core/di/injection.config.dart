@@ -37,6 +37,14 @@ import '../../features/admin/residents/domain/repositories/admin_residents_repos
     as _i943;
 import '../../features/admin/residents/presentation/bloc/admin_residents_cubit.dart'
     as _i938;
+import '../../features/attendance/data/datasources/attendance_remote_data_source.dart'
+    as _i680;
+import '../../features/attendance/data/repositories/attendance_repository_impl.dart'
+    as _i719;
+import '../../features/attendance/domain/repositories/attendance_repository.dart'
+    as _i477;
+import '../../features/attendance/presentation/bloc/attendance_check_in_cubit.dart'
+    as _i494;
 import '../../features/attendance/presentation/bloc/attendance_cubit.dart'
     as _i1;
 import '../../features/auth/data/datasources/auth_remote_data_source.dart'
@@ -104,6 +112,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i875.SessionInvalidationBus>(),
       ),
     );
+    gh.lazySingleton<_i680.AttendanceRemoteDataSource>(
+      () => _i680.AttendanceRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i461.AdminEventsRemoteDataSource>(
       () => _i461.AdminEventsRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
@@ -131,10 +142,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i797.AuthBloc>(
       () => _i797.AuthBloc(gh<_i941.RegisterUseCase>()),
     );
+    gh.lazySingleton<_i477.AttendanceRepository>(
+      () => _i719.AttendanceRepositoryImpl(
+        gh<_i680.AttendanceRemoteDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i820.CommunityEventsRepository>(
       () => _i274.CommunityEventsRepositoryImpl(
         gh<_i693.CommunityEventsRemoteDataSource>(),
       ),
+    );
+    gh.factory<_i494.AttendanceCheckInCubit>(
+      () => _i494.AttendanceCheckInCubit(gh<_i477.AttendanceRepository>()),
     );
     gh.lazySingleton<_i371.SessionCubit>(
       () => _i371.SessionCubit(
@@ -142,14 +161,17 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i875.SessionInvalidationBus>(),
       ),
     );
-    gh.factory<_i1.AttendanceCubit>(
-      () => _i1.AttendanceCubit(gh<_i820.CommunityEventsRepository>()),
-    );
     gh.factory<_i816.HomeCubit>(
       () => _i816.HomeCubit(gh<_i820.CommunityEventsRepository>()),
     );
     gh.factory<_i886.ActivityDetailCubit>(
       () => _i886.ActivityDetailCubit(gh<_i820.CommunityEventsRepository>()),
+    );
+    gh.factory<_i1.AttendanceCubit>(
+      () => _i1.AttendanceCubit(
+        gh<_i820.CommunityEventsRepository>(),
+        gh<_i477.AttendanceRepository>(),
+      ),
     );
     gh.lazySingleton<_i943.AdminResidentsRepository>(
       () => _i767.AdminResidentsRepositoryImpl(

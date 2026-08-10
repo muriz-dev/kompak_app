@@ -5,11 +5,11 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Aplikasi membutuhkan akses kamera untuk memindai wajah Anda saat registrasi.</string>
+	<string>Aplikasi membutuhkan akses kamera untuk memindai wajah Anda saat registrasi dan absensi kegiatan.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Aplikasi membutuhkan akses galeri untuk memilih poster kegiatan.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Aplikasi membutuhkan lokasi Anda untuk membantu menentukan titik kegiatan.</string>
+	<string>Aplikasi membutuhkan lokasi Anda untuk menentukan titik kegiatan dan memvalidasi kehadiran.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

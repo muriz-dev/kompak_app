@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/attendance_data.dart';
+import '../../domain/entities/attendance_record.dart';
 
 abstract class AttendanceState extends Equatable {
   const AttendanceState();
@@ -14,15 +15,17 @@ class AttendanceLoaded extends AttendanceState {
   final AttendanceStats stats;
   final OngoingEvent? ongoingEvent;
   final List<UpcomingEventItem> upcomingEvents;
+  final List<AttendanceRecord> history;
 
   const AttendanceLoaded({
     required this.stats,
     this.ongoingEvent,
     required this.upcomingEvents,
+    required this.history,
   });
 
   @override
-  List<Object?> get props => [stats, ongoingEvent, upcomingEvents];
+  List<Object?> get props => [stats, ongoingEvent, upcomingEvents, history];
 }
 
 class AttendanceError extends AttendanceState {

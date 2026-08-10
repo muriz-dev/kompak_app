@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../domain/entities/community_event.dart';
 import '../bloc/activity_detail_cubit.dart';
 import '../bloc/activity_detail_state.dart';
@@ -276,8 +277,14 @@ class _ActivityDetailView extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       key: const ValueKey('activity-check-in-button'),
-                      onPressed: null,
+                      onPressed: availability.canCheckIn
+                          ? () => context.router.push(
+                              AttendanceScannerRoute(eventId: event.id),
+                            )
+                          : null,
                       style: FilledButton.styleFrom(
+                        backgroundColor: _detailBlue,
+                        foregroundColor: Colors.white,
                         disabledBackgroundColor: const Color(0xFFDCE6FC),
                         disabledForegroundColor: const Color(0xFF5E78AE),
                         padding: const EdgeInsets.symmetric(vertical: 15),
@@ -286,9 +293,11 @@ class _ActivityDetailView extends StatelessWidget {
                         ),
                       ),
                       icon: const Icon(Icons.face_retouching_natural),
-                      label: const Text(
-                        'Absensi segera tersedia',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      label: Text(
+                        availability.canCheckIn
+                            ? 'Mulai Absensi'
+                            : availability.checkInLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -310,12 +319,27 @@ class _ActivityDetailView extends StatelessWidget {
 
   _EventAvailability _availability(CommunityEvent event, DateTime now) {
     if (event.isUpcomingAt(now)) {
-      return const _EventAvailability('Mendatang', _detailBlue);
+      return const _EventAvailability(
+        'Mendatang',
+        _detailBlue,
+        canCheckIn: false,
+        checkInLabel: 'Absensi belum dibuka',
+      );
     }
     if (event.isOngoingAt(now)) {
-      return const _EventAvailability('Sedang berlangsung', _detailGreen);
+      return const _EventAvailability(
+        'Sedang berlangsung',
+        _detailGreen,
+        canCheckIn: true,
+        checkInLabel: 'Mulai Absensi',
+      );
     }
-    return const _EventAvailability('Selesai', _detailMuted);
+    return const _EventAvailability(
+      'Selesai',
+      _detailMuted,
+      canCheckIn: false,
+      checkInLabel: 'Absensi ditutup',
+    );
   }
 }
 
@@ -497,8 +521,15 @@ class _ActivityDetailErrorView extends StatelessWidget {
 }
 
 class _EventAvailability {
-  const _EventAvailability(this.label, this.color);
+  const _EventAvailability(
+    this.label,
+    this.color, {
+    required this.canCheckIn,
+    required this.checkInLabel,
+  });
 
   final String label;
   final Color color;
+  final bool canCheckIn;
+  final String checkInLabel;
 }
