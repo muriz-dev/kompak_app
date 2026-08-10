@@ -20,5 +20,17 @@ void main() {
       theme.datePickerTheme.confirmButtonStyle?.foregroundColor?.resolve({}),
       KompakColors.primary,
     );
+    expect(
+      (theme.timePickerTheme.dayPeriodColor as WidgetStateColor).resolve({
+        WidgetState.selected,
+      }),
+      KompakColors.primary,
+    );
+    expect(
+      (theme.timePickerTheme.dayPeriodTextColor as WidgetStateColor).resolve({
+        WidgetState.selected,
+      }),
+      Colors.white,
+    );
   });
 }

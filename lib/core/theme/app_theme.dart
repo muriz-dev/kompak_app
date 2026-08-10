@@ -74,6 +74,25 @@ abstract final class AppTheme {
         cancelButtonStyle: primaryTextButton,
         confirmButtonStyle: primaryTextButton,
       ),
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: KompakColors.surface,
+        dayPeriodBorderSide: const BorderSide(color: KompakColors.outline),
+        dayPeriodColor: WidgetStateColor.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? KompakColors.primary
+              : Colors.transparent;
+        }),
+        dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? Colors.white
+              : KompakColors.ink;
+        }),
+        dialBackgroundColor: KompakColors.primarySurface,
+        dialHandColor: KompakColors.primary,
+        entryModeIconColor: KompakColors.primary,
+        cancelButtonStyle: primaryTextButton,
+        confirmButtonStyle: primaryTextButton,
+      ),
     );
   }
 }
