@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../core/di/injection.dart';
 import '../../../../../core/routes/app_router.dart';
+import '../../domain/entities/admin_event.dart';
 import '../../domain/entities/create_admin_event_request.dart';
 import '../../domain/entities/event_location_selection.dart';
 import '../bloc/create_event_cubit.dart';
@@ -532,6 +533,7 @@ class _CreateEventViewState extends State<CreateEventView> {
       rewardPoints: int.parse(_pointsController.text.trim()),
       latitude: location.latitude,
       longitude: location.longitude,
+      status: AdminEventRecordStatus.published,
       poster: _posterUpload(),
     );
   }
@@ -554,20 +556,20 @@ class _CreateEventViewState extends State<CreateEventView> {
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(content: Text(message)));
         break;
-      case CreateEventSuccess():
-        _showSuccessDialog();
+      case CreateEventSuccess(:final event):
+        _showSuccessDialog(event.status);
         break;
       case CreateEventInitial() || CreateEventSubmitting():
         break;
     }
   }
 
-  Future<void> _showSuccessDialog() async {
+  Future<void> _showSuccessDialog(AdminEventRecordStatus status) async {
     final action = await showDialog<EventSuccessAction>(
       context: context,
       barrierDismissible: false,
       barrierColor: const Color(0xBF24282E),
-      builder: (context) => const EventSuccessDialog(),
+      builder: (context) => EventSuccessDialog(status: status),
     );
     if (!mounted) return;
 

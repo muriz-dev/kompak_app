@@ -8,6 +8,7 @@ import 'package:kompak_app/features/admin/events/domain/entities/event_location_
 import 'package:kompak_app/features/admin/events/domain/repositories/admin_events_repository.dart';
 import 'package:kompak_app/features/admin/events/presentation/bloc/create_event_cubit.dart';
 import 'package:kompak_app/features/admin/events/presentation/pages/create_event_page.dart';
+import 'package:kompak_app/features/admin/events/presentation/widgets/event_success_dialog.dart';
 
 void main() {
   Widget buildPage({
@@ -136,6 +137,7 @@ void main() {
     expect(find.text('Kegiatan Berhasil Dibuat!'), findsOneWidget);
     expect(repository.createRequest?.latitude, -6.2);
     expect(repository.createRequest?.longitude, 106.816666);
+    expect(repository.createRequest?.status, AdminEventRecordStatus.published);
     expect(
       repository.createRequest?.attendanceEndTime.isAfter(
         repository.createRequest!.attendanceStartTime,
@@ -150,6 +152,31 @@ void main() {
 
     expect(find.text('Kegiatan Berhasil Dibuat!'), findsNothing);
     expect(tester.widget<TextFormField>(nameField).controller?.text, isEmpty);
+  });
+
+  testWidgets('uses the returned status in the success message', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: EventSuccessDialog(status: AdminEventRecordStatus.draft),
+        ),
+      ),
+    );
+
+    expect(
+      find.text(
+        'Kegiatan Anda telah disimpan sebagai draft dan belum terlihat oleh warga.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Kegiatan Anda telah dipublikasikan dan dapat dilihat oleh warga.',
+      ),
+      findsNothing,
+    );
   });
 }
 

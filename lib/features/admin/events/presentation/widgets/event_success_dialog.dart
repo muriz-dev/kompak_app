@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/admin_event.dart';
 import 'event_form_widgets.dart';
 
 enum EventSuccessAction { viewList, createAnother }
 
 class EventSuccessDialog extends StatelessWidget {
-  const EventSuccessDialog({super.key});
+  const EventSuccessDialog({required this.status, super.key});
+
+  final AdminEventRecordStatus status;
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +41,12 @@ class EventSuccessDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Kegiatan Anda telah dipublikasikan dan dapat dilihat oleh warga.',
+                Text(
+                  status == AdminEventRecordStatus.published
+                      ? 'Kegiatan Anda telah dipublikasikan dan dapat dilihat oleh warga.'
+                      : 'Kegiatan Anda telah disimpan sebagai draft dan belum terlihat oleh warga.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF626262),
                     fontSize: 16,
                     height: 1.4,
