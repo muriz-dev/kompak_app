@@ -15,6 +15,8 @@ import 'package:kompak_app/features/auth/data/datasources/auth_remote_data_sourc
 import 'package:kompak_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kompak_app/features/auth/presentation/session/session_cubit.dart';
 import 'package:kompak_app/features/home/presentation/bloc/home_cubit.dart';
+import 'package:kompak_app/features/events/domain/entities/community_event.dart';
+import 'package:kompak_app/features/events/domain/repositories/community_events_repository.dart';
 import 'package:kompak_app/main.dart';
 
 class _MemoryTokenStore implements SessionTokenStore {
@@ -103,7 +105,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await getIt.reset();
-    getIt.registerFactory<HomeCubit>(HomeCubit.new);
+    getIt.registerFactory<HomeCubit>(() => HomeCubit(_EmptyEventsRepository()));
 
     final adapter = _SessionAdapter(
       status: status,
@@ -207,4 +209,12 @@ void main() {
     expect(find.text('Coba Lagi'), findsOneWidget);
     expect(harness.tokenStore.token, 'retry-token');
   });
+}
+
+class _EmptyEventsRepository implements CommunityEventsRepository {
+  @override
+  Future<CommunityEvent> getEvent(String eventId) => throw UnimplementedError();
+
+  @override
+  Future<List<CommunityEvent>> getEvents(EventTimeframe timeframe) async => [];
 }

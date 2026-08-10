@@ -15,7 +15,7 @@ import '../../features/auth/presentation/pages/session_gate_page.dart';
 import '../../features/auth/presentation/pages/account_status_pages.dart';
 import '../../features/auth/presentation/session/session_cubit.dart';
 import '../../features/attendance/presentation/pages/attendance_page.dart';
-import '../../features/attendance/presentation/pages/activity_detail_page.dart';
+import '../../features/events/presentation/pages/activity_detail_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/home/presentation/pages/notification_page.dart';
@@ -54,7 +54,11 @@ class AppRouter extends RootStackRouter {
       guards: [_activeSessionGuard],
     ),
     AutoRoute(page: NotificationRoute.page, guards: [_activeSessionGuard]),
-    AutoRoute(page: ActivityDetailRoute.page, guards: [_activeSessionGuard]),
+    AutoRoute(
+      page: ActivityDetailRoute.page,
+      path: '/events/:eventId',
+      guards: [_activeSessionGuard],
+    ),
     AutoRoute(
       page: AdminResidentsRoute.page,
       path: '/admin/residents',

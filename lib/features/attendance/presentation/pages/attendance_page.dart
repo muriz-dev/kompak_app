@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/routes/app_router.dart';
 import '../bloc/attendance_cubit.dart';
 import '../bloc/attendance_state.dart';
 import '../widgets/attendance_stats_card.dart';
@@ -24,7 +25,11 @@ class AttendancePage extends StatelessWidget {
               if (state is AttendanceLoading) {
                 return const Center(child: CircularProgressIndicator());
               } else if (state is AttendanceError) {
-                return Center(child: Text(state.message));
+                return _AttendanceErrorView(
+                  message: state.message,
+                  onRetry: () =>
+                      context.read<AttendanceCubit>().loadAttendanceData(),
+                );
               } else if (state is AttendanceLoaded) {
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
@@ -86,7 +91,10 @@ class AttendancePage extends StatelessWidget {
                               SizedBox(width: 4),
                               Text(
                                 'Langsung',
-                                style: TextStyle(color: Colors.red, fontSize: 12),
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
@@ -94,37 +102,51 @@ class AttendancePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       if (state.ongoingEvent != null)
-                        OngoingEventCard(event: state.ongoingEvent!),
+                        OngoingEventCard(
+                          event: state.ongoingEvent!,
+                          onDetailTap: () => context.router.push(
+                            ActivityDetailRoute(
+                              eventId: state.ongoingEvent!.id,
+                            ),
+                          ),
+                        )
+                      else
+                        const _EmptyEventMessage(
+                          key: ValueKey('attendance-empty-ongoing'),
+                          message:
+                              'Tidak ada kegiatan yang sedang berlangsung.',
+                        ),
                       const SizedBox(height: 32),
 
                       // Kegiatan Mendatang
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Kegiatan Mendatang',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Text('Lihat Semua'),
-                          ),
-                        ],
+                      const Text(
+                        'Kegiatan Mendatang',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: state.upcomingEvents.length,
-                        itemBuilder: (context, index) {
-                          return UpcomingEventListTile(
-                            event: state.upcomingEvents[index],
-                          );
-                        },
-                      ),
+                      if (state.upcomingEvents.isEmpty)
+                        const _EmptyEventMessage(
+                          key: ValueKey('attendance-empty-upcoming'),
+                          message: 'Belum ada kegiatan mendatang.',
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: state.upcomingEvents.length,
+                          itemBuilder: (context, index) {
+                            final event = state.upcomingEvents[index];
+                            return UpcomingEventListTile(
+                              event: event,
+                              onDetailTap: () => context.router.push(
+                                ActivityDetailRoute(eventId: event.id),
+                              ),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 );
@@ -133,6 +155,58 @@ class AttendancePage extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AttendanceErrorView extends StatelessWidget {
+  const _AttendanceErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_outlined,
+              color: Color(0xFF62676E),
+              size: 48,
+            ),
+            const SizedBox(height: 14),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 18),
+            FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyEventMessage extends StatelessWidget {
+  const _EmptyEventMessage({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FB),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(color: Color(0xFF62676E), fontSize: 14),
       ),
     );
   }

@@ -1,71 +1,102 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+
+import '../../../events/domain/entities/community_event.dart';
+import '../../../events/domain/repositories/community_events_repository.dart';
 import '../../domain/entities/attendance_data.dart';
 import 'attendance_state.dart';
 
 @injectable
 class AttendanceCubit extends Cubit<AttendanceState> {
-  AttendanceCubit() : super(AttendanceLoading());
+  AttendanceCubit(this._eventsRepository) : super(AttendanceLoading());
 
-  void loadAttendanceData() async {
+  final CommunityEventsRepository _eventsRepository;
+
+  Future<void> loadAttendanceData() async {
     emit(AttendanceLoading());
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      final results = await Future.wait([
+        _eventsRepository.getEvents(EventTimeframe.ongoing),
+        _eventsRepository.getEvents(EventTimeframe.upcoming),
+      ]);
+      final ongoingEvents = results[0];
+      final upcomingEvents = results[1];
+      final now = DateTime.now();
 
-      // Mock Data
       final stats = AttendanceStats(
-        totalEventsAttended: 12,
-        potentialPoints: 400,
+        // Attendance history will replace this value in the check-in slice.
+        totalEventsAttended: 0,
+        potentialPoints: [
+          ...ongoingEvents,
+          ...upcomingEvents,
+        ].fold(0, (total, event) => total + event.rewardPoints),
       );
 
-      final ongoingEvent = OngoingEvent(
-        id: '1',
-        title: 'Rapat Rutin & Kerja Bakti',
-        imageUrl:
-            'https://images.pexels.com/photos/28434145/pexels-photo-28434145.jpeg',
-        tag: 'MENDESAK',
-        timeRemaining: 'Berakhir dlm 45 mnt',
-        participantCount: 24,
-        points: 100,
-      );
-
-      final upcomingEvents = [
-        UpcomingEventItem(
-          id: '2',
-          month: 'MEI',
-          date: '24',
-          title: 'Posyandu Melati',
-          location: 'Balai Warga RT 04',
-          points: 50,
-        ),
-        UpcomingEventItem(
-          id: '3',
-          month: 'MEI',
-          date: '26',
-          title: 'Siskamling Malam',
-          location: 'Pos Ronda Utama',
-          points: 75,
-        ),
-        UpcomingEventItem(
-          id: '4',
-          month: 'JUN',
-          date: '02',
-          title: 'Senam Sehat',
-          location: 'Lapangan Serbaguna',
-          points: 30,
-        ),
-      ];
+      final ongoingEvent = ongoingEvents.isEmpty
+          ? null
+          : _toOngoingEvent(ongoingEvents.first, now);
+      final upcomingItems = upcomingEvents
+          .map(_toUpcomingEvent)
+          .toList(growable: false);
 
       emit(
         AttendanceLoaded(
           stats: stats,
           ongoingEvent: ongoingEvent,
-          upcomingEvents: upcomingEvents,
+          upcomingEvents: upcomingItems,
         ),
       );
-    } catch (e) {
-      emit(AttendanceError(e.toString()));
+    } catch (error) {
+      emit(AttendanceError(_message(error)));
     }
   }
+
+  OngoingEvent _toOngoingEvent(CommunityEvent event, DateTime now) {
+    final remaining = event.attendanceEndTime.difference(now);
+    final timeRemaining = remaining.inHours > 0
+        ? 'Berakhir dlm ${remaining.inHours} jam'
+        : 'Berakhir dlm ${remaining.inMinutes.clamp(0, 59)} mnt';
+
+    return OngoingEvent(
+      id: event.id,
+      title: event.title,
+      imageUrl: event.bannerUrl ?? '',
+      tag: 'BERLANGSUNG',
+      timeRemaining: timeRemaining,
+      participantCount: 0,
+      points: event.rewardPoints,
+    );
+  }
+
+  UpcomingEventItem _toUpcomingEvent(CommunityEvent event) {
+    final localStart = event.attendanceStartTime.toLocal();
+    const months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MEI',
+      'JUN',
+      'JUL',
+      'AGU',
+      'SEP',
+      'OKT',
+      'NOV',
+      'DES',
+    ];
+
+    return UpcomingEventItem(
+      id: event.id,
+      month: months[localStart.month - 1],
+      date: localStart.day.toString().padLeft(2, '0'),
+      title: event.title,
+      location: event.coordinateLabel,
+      points: event.rewardPoints,
+    );
+  }
+
+  String _message(Object error) => error.toString().replaceFirst(
+    RegExp(r'^(Exception|FormatException):\s*'),
+    '',
+  );
 }

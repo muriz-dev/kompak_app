@@ -43,10 +43,15 @@ class HomePage extends StatelessWidget {
                     AutoTabsRouter.of(context).setActiveIndex(1),
                 onActivityReminder: (activity) =>
                     _showReminderConfirmation(context, activity),
-                onAnnouncementTap: () =>
-                    context.router.push(const ActivityDetailRoute()),
+                onActivityTap: (activity) => context.router.push(
+                  ActivityDetailRoute(eventId: activity.id),
+                ),
+                onAnnouncementTap: () => _showAnnouncementNotice(context),
               ),
-              HomeError() => _HomeErrorView(message: state.message),
+              HomeError() => _HomeErrorView(
+                message: state.message,
+                onRetry: () => context.read<HomeCubit>().loadHomeData(),
+              ),
               _ => const _HomeLoadingView(),
             };
           },
@@ -65,6 +70,14 @@ class HomePage extends StatelessWidget {
         SnackBar(content: Text('Pengingat ${activity.title} diaktifkan.')),
       );
   }
+
+  void _showAnnouncementNotice(BuildContext context) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Detail pengumuman segera tersedia.')),
+      );
+  }
 }
 
 class HomeDashboardView extends StatelessWidget {
@@ -79,6 +92,7 @@ class HomeDashboardView extends StatelessWidget {
     required this.onRedeemTap,
     required this.onViewAllActivities,
     required this.onActivityReminder,
+    required this.onActivityTap,
     required this.onAnnouncementTap,
   });
 
@@ -91,6 +105,7 @@ class HomeDashboardView extends StatelessWidget {
   final VoidCallback onRedeemTap;
   final VoidCallback onViewAllActivities;
   final ValueChanged<UpcomingActivity> onActivityReminder;
+  final ValueChanged<UpcomingActivity> onActivityTap;
   final VoidCallback onAnnouncementTap;
 
   @override
@@ -158,23 +173,27 @@ class HomeDashboardView extends StatelessWidget {
               onActionTap: onViewAllActivities,
             ),
             const SizedBox(height: 14),
-            SizedBox(
-              height: 170,
-              child: ListView.separated(
-                key: const ValueKey('home-activity-list'),
-                scrollDirection: Axis.horizontal,
-                clipBehavior: Clip.none,
-                itemCount: activities.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final activity = activities[index];
-                  return ActivityCard(
-                    activity: activity,
-                    onReminderTap: () => onActivityReminder(activity),
-                  );
-                },
+            if (activities.isEmpty)
+              const _EmptyActivities()
+            else
+              SizedBox(
+                height: 170,
+                child: ListView.separated(
+                  key: const ValueKey('home-activity-list'),
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  itemCount: activities.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final activity = activities[index];
+                    return ActivityCard(
+                      activity: activity,
+                      onTap: () => onActivityTap(activity),
+                      onReminderTap: () => onActivityReminder(activity),
+                    );
+                  },
+                ),
               ),
-            ),
             const SizedBox(height: 28),
             const Text(
               'Pengumuman Terbaru',
@@ -197,6 +216,35 @@ class HomeDashboardView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyActivities extends StatelessWidget {
+  const _EmptyActivities();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('home-empty-activities'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FB),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.event_available_outlined, color: _homeBlue),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Belum ada kegiatan mendatang.',
+              style: TextStyle(color: _homeMuted, fontSize: 14),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -386,9 +434,10 @@ class _SkeletonBlock extends StatelessWidget {
 }
 
 class _HomeErrorView extends StatelessWidget {
-  const _HomeErrorView({required this.message});
+  const _HomeErrorView({required this.message, required this.onRetry});
 
   final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -396,10 +445,19 @@ class _HomeErrorView extends StatelessWidget {
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: _homeMuted, fontSize: 15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_outlined, color: _homeMuted, size: 48),
+              const SizedBox(height: 14),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: _homeMuted, fontSize: 15),
+              ),
+              const SizedBox(height: 18),
+              FilledButton(onPressed: onRetry, child: const Text('Coba Lagi')),
+            ],
           ),
         ),
       ),

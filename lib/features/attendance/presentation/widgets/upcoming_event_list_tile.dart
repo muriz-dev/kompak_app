@@ -3,8 +3,13 @@ import '../../domain/entities/attendance_data.dart';
 
 class UpcomingEventListTile extends StatelessWidget {
   final UpcomingEventItem event;
+  final VoidCallback onDetailTap;
 
-  const UpcomingEventListTile({super.key, required this.event});
+  const UpcomingEventListTile({
+    super.key,
+    required this.event,
+    required this.onDetailTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +22,7 @@ class UpcomingEventListTile extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -71,7 +76,11 @@ class UpcomingEventListTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -104,7 +113,7 @@ class UpcomingEventListTile extends StatelessWidget {
               SizedBox(
                 height: 28,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onDetailTap,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981), // Green 500
                     foregroundColor: Colors.white,

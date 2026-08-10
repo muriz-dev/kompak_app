@@ -1,19 +1,23 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+
+import '../../../events/domain/entities/community_event.dart';
+import '../../../events/domain/repositories/community_events_repository.dart';
 import '../../domain/entities/home_data.dart';
 import 'home_state.dart';
 
 @injectable
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit() : super(HomeLoading());
+  HomeCubit(this._eventsRepository) : super(HomeLoading());
 
-  void loadHomeData() async {
+  final CommunityEventsRepository _eventsRepository;
+
+  Future<void> loadHomeData() async {
     emit(HomeLoading());
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      final events = await _eventsRepository.getEvents(EventTimeframe.upcoming);
 
-      // Mock Data
+      // Profile summary and announcements remain separate integration slices.
       final userSummary = UserSummary(
         name: 'Pak Budi',
         points: 1250,
@@ -22,22 +26,16 @@ class HomeCubit extends Cubit<HomeState> {
         levelProgress: 1250 / 1400, // Just a rough calculation for UI
       );
 
-      final upcomingActivities = [
-        UpcomingActivity(
-          id: '1',
-          title: 'Rapat Triwulan RT',
-          date: DateTime(2026, 11, 15, 19, 30),
-          tag: 'PENTING',
-          isImportant: true,
-        ),
-        UpcomingActivity(
-          id: '2',
-          title: 'Kerja Bakti',
-          date: DateTime(2026, 11, 20, 8, 0),
-          tag: 'INFO',
-          isImportant: false,
-        ),
-      ];
+      final upcomingActivities = events
+          .map(
+            (event) => UpcomingActivity(
+              id: event.id,
+              title: event.title,
+              date: event.attendanceStartTime.toLocal(),
+              tag: 'KEGIATAN',
+            ),
+          )
+          .toList(growable: false);
 
       final announcements = [
         Announcement(
@@ -59,8 +57,13 @@ class HomeCubit extends Cubit<HomeState> {
           announcements: announcements,
         ),
       );
-    } catch (e) {
-      emit(HomeError(e.toString()));
+    } catch (error) {
+      emit(HomeError(_message(error)));
     }
   }
+
+  String _message(Object error) => error.toString().replaceFirst(
+    RegExp(r'^(Exception|FormatException):\s*'),
+    '',
+  );
 }

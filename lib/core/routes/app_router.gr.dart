@@ -12,18 +12,54 @@ part of 'app_router.dart';
 
 /// generated route for
 /// [ActivityDetailPage]
-class ActivityDetailRoute extends PageRouteInfo<void> {
-  const ActivityDetailRoute({List<PageRouteInfo>? children})
-    : super(ActivityDetailRoute.name, initialChildren: children);
+class ActivityDetailRoute extends PageRouteInfo<ActivityDetailRouteArgs> {
+  ActivityDetailRoute({
+    required String eventId,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         ActivityDetailRoute.name,
+         args: ActivityDetailRouteArgs(eventId: eventId, key: key),
+         rawPathParams: {'eventId': eventId},
+         initialChildren: children,
+       );
 
   static const String name = 'ActivityDetailRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const ActivityDetailPage();
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<ActivityDetailRouteArgs>(
+        orElse: () =>
+            ActivityDetailRouteArgs(eventId: pathParams.getString('eventId')),
+      );
+      return ActivityDetailPage(eventId: args.eventId, key: args.key);
     },
   );
+}
+
+class ActivityDetailRouteArgs {
+  const ActivityDetailRouteArgs({required this.eventId, this.key});
+
+  final String eventId;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'ActivityDetailRouteArgs{eventId: $eventId, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ActivityDetailRouteArgs) return false;
+    return eventId == other.eventId && key == other.key;
+  }
+
+  @override
+  int get hashCode => eventId.hashCode ^ key.hashCode;
 }
 
 /// generated route for

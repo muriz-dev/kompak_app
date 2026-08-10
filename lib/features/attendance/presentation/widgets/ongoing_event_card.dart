@@ -1,12 +1,15 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/routes/app_router.dart';
 import '../../domain/entities/attendance_data.dart';
 
 class OngoingEventCard extends StatelessWidget {
   final OngoingEvent event;
+  final VoidCallback onDetailTap;
 
-  const OngoingEventCard({super.key, required this.event});
+  const OngoingEventCard({
+    super.key,
+    required this.event,
+    required this.onDetailTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +19,7 @@ class OngoingEventCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -28,32 +31,24 @@ class OngoingEventCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(
-                  event.imageUrl,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 160,
-                      width: double.infinity,
-                      color: Colors.grey.shade300,
-                    );
-                  },
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
                 ),
+                child: _EventImage(url: event.imageUrl),
               ),
               // Dark gradient overlay for text readability
               Container(
                 height: 160,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                     ],
                   ),
                 ),
@@ -68,7 +63,10 @@ class OngoingEventCard extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green,
                             borderRadius: BorderRadius.circular(4),
@@ -83,7 +81,11 @@ class OngoingEventCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.access_time, color: Colors.white, size: 12),
+                        const Icon(
+                          Icons.access_time,
+                          color: Colors.white,
+                          size: 12,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           event.timeRemaining,
@@ -114,44 +116,16 @@ class OngoingEventCard extends StatelessWidget {
             child: Column(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Row(
-                      children: [
-                        // Simulated Stacked Avatars
-                        SizedBox(
-                          width: 60,
-                          height: 30,
-                          child: Stack(
-                            children: [
-                              _buildAvatar(0),
-                              Positioned(left: 15, child: _buildAvatar(1)),
-                              Positioned(left: 30, child: _buildAvatar(2)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '+${event.participantCount} warga hadir',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.stars, color: Colors.orange, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          '+${event.points} Pts',
-                          style: const TextStyle(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    const Icon(Icons.stars, color: Colors.orange, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '+${event.points} Pts',
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -159,9 +133,7 @@ class OngoingEventCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      context.router.push(const ActivityDetailRoute());
-                    },
+                    onPressed: onDetailTap,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -169,10 +141,16 @@ class OngoingEventCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                    icon: const Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.white,
+                    ),
                     label: const Text(
-                      'Absensi Sekarang',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      'Lihat Detail',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -183,23 +161,40 @@ class OngoingEventCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildAvatar(int index) {
-    final mockAvatars = [
-      'https://i.pravatar.cc/150?img=32',
-      'https://i.pravatar.cc/150?img=12',
-      'https://i.pravatar.cc/150?img=47',
-    ];
-    return Container(
-      width: 30,
-      height: 30,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.blueGrey.shade200,
-        border: Border.all(color: Colors.white, width: 2),
-        image: DecorationImage(
-          image: NetworkImage(mockAvatars[index % mockAvatars.length]),
-          fit: BoxFit.cover,
+class _EventImage extends StatelessWidget {
+  const _EventImage({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url.isNotEmpty) {
+      return Image.network(
+        url,
+        height: 160,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const _EventImageFallback(),
+      );
+    }
+    return const _EventImageFallback();
+  }
+}
+
+class _EventImageFallback extends StatelessWidget {
+  const _EventImageFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 160,
+      width: double.infinity,
+      child: ColoredBox(
+        color: Color(0xFFDCE6FC),
+        child: Center(
+          child: Icon(Icons.event_rounded, color: Color(0xFF2563EB), size: 54),
         ),
       ),
     );

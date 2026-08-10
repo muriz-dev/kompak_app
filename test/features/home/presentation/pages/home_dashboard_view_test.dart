@@ -37,6 +37,7 @@ void main() {
     VoidCallback? onRedeemTap,
     VoidCallback? onViewAllActivities,
     ValueChanged<UpcomingActivity>? onActivityReminder,
+    ValueChanged<UpcomingActivity>? onActivityTap,
     VoidCallback? onAnnouncementTap,
   }) {
     return MaterialApp(
@@ -51,6 +52,7 @@ void main() {
           onRedeemTap: onRedeemTap ?? () {},
           onViewAllActivities: onViewAllActivities ?? () {},
           onActivityReminder: onActivityReminder ?? (_) {},
+          onActivityTap: onActivityTap ?? (_) {},
           onAnnouncementTap: onAnnouncementTap ?? () {},
         ),
       ),
@@ -78,6 +80,7 @@ void main() {
     var redeemTapped = false;
     var viewAllTapped = false;
     UpcomingActivity? remindedActivity;
+    UpcomingActivity? openedActivity;
     var announcementTapped = false;
 
     await tester.pumpWidget(
@@ -88,6 +91,7 @@ void main() {
         onRedeemTap: () => redeemTapped = true,
         onViewAllActivities: () => viewAllTapped = true,
         onActivityReminder: (activity) => remindedActivity = activity,
+        onActivityTap: (activity) => openedActivity = activity,
         onAnnouncementTap: () => announcementTapped = true,
       ),
     );
@@ -105,6 +109,10 @@ void main() {
           find.byKey(const ValueKey('home-admin-preview-button')),
         )
         .onPressed
+        ?.call();
+    tester
+        .widget<InkWell>(find.byKey(const ValueKey('home-activity-activity-1')))
+        .onTap
         ?.call();
     tester
         .widget<FilledButton>(
@@ -137,6 +145,7 @@ void main() {
     expect(redeemTapped, isTrue);
     expect(viewAllTapped, isTrue);
     expect(remindedActivity, same(activities.first));
+    expect(openedActivity, same(activities.first));
     expect(announcementTapped, isTrue);
   });
 
