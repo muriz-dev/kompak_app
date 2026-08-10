@@ -24,6 +24,8 @@ class AdminEventsPage extends StatelessWidget {
       create: (_) => getIt<AdminEventsCubit>()..loadEvents(),
       child: AdminEventsView(
         onBack: () => context.router.maybePop(),
+        onOpenEvent: (event) =>
+            context.router.push<void>(AdminEventDetailRoute(eventId: event.id)),
         onCreateEvent: () async {
           await context.router.push<void>(CreateEventRoute());
         },
@@ -36,11 +38,13 @@ class AdminEventsView extends StatefulWidget {
   const AdminEventsView({
     required this.onBack,
     required this.onCreateEvent,
+    this.onOpenEvent,
     super.key,
   });
 
   final VoidCallback onBack;
   final Future<void> Function() onCreateEvent;
+  final Future<void> Function(AdminEvent event)? onOpenEvent;
 
   @override
   State<AdminEventsView> createState() => _AdminEventsViewState();
@@ -170,6 +174,8 @@ class _AdminEventsViewState extends State<AdminEventsView> {
                                       visibleEvents[index],
                                       status,
                                     ),
+                                    onOpen: () =>
+                                        _openEvent(visibleEvents[index]),
                                   ),
                                 ),
                             ],
@@ -292,6 +298,12 @@ class _AdminEventsViewState extends State<AdminEventsView> {
 
   Future<void> _openCreateEvent() async {
     await widget.onCreateEvent();
+    if (!mounted) return;
+    await context.read<AdminEventsCubit>().loadEvents();
+  }
+
+  Future<void> _openEvent(AdminEvent event) async {
+    await widget.onOpenEvent?.call(event);
     if (!mounted) return;
     await context.read<AdminEventsCubit>().loadEvents();
   }
@@ -520,6 +532,7 @@ class _EventCard extends StatelessWidget {
     required this.actionsEnabled,
     required this.isUpdating,
     required this.onStatusChange,
+    required this.onOpen,
   });
 
   final AdminEvent event;
@@ -527,106 +540,113 @@ class _EventCard extends StatelessWidget {
   final bool actionsEnabled;
   final bool isUpdating;
   final ValueChanged<AdminEventRecordStatus> onStatusChange;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
       key: ValueKey('event-card-${event.title}'),
-      padding: const EdgeInsets.all(17),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: _AdminEventsViewState._field),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: _AdminEventsViewState._field),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onOpen,
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _AdminEventsViewState._ink,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.calendar_today_outlined,
-                          color: KompakColors.primary,
-                          size: 15,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            '${_dateLabel(event.eventDate)} • ${DateFormat('HH:mm').format(event.attendanceStartTime.toLocal())}',
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: _AdminEventsViewState._muted,
-                              fontSize: 13,
-                            ),
+                        Text(
+                          event.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _AdminEventsViewState._ink,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              color: KompakColors.primary,
+                              size: 15,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                '${_dateLabel(event.eventDate)} • ${DateFormat('HH:mm').format(event.attendanceStartTime.toLocal())}',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: _AdminEventsViewState._muted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  _EventStatusBadge(status: lifecycle),
+                ],
               ),
-              const SizedBox(width: 8),
-              _EventStatusBadge(status: lifecycle),
+              const SizedBox(height: 16),
+              const SizedBox(
+                width: double.infinity,
+                height: 1,
+                child: CustomPaint(painter: _DashedLinePainter()),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _EventMetric(
+                      icon: Icons.location_searching_rounded,
+                      iconColor: KompakColors.primary,
+                      value: '${event.radiusMeters} meter',
+                      label: 'Radius Absensi',
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _EventMetric(
+                      icon: Icons.workspace_premium_rounded,
+                      iconColor: _AdminEventsViewState._orange,
+                      value:
+                          '+${NumberFormat.decimalPattern('id_ID').format(event.rewardPoints)} Pts',
+                      label: 'Reward',
+                      valueColor: _AdminEventsViewState._orange,
+                    ),
+                  ),
+                ],
+              ),
+              if (event.status
+                  case AdminEventRecordStatus.draft ||
+                      AdminEventRecordStatus.published) ...[
+                const SizedBox(height: 16),
+                _EventActions(
+                  event: event,
+                  enabled: actionsEnabled,
+                  isUpdating: isUpdating,
+                  onStatusChange: onStatusChange,
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 16),
-          const SizedBox(
-            width: double.infinity,
-            height: 1,
-            child: CustomPaint(painter: _DashedLinePainter()),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _EventMetric(
-                  icon: Icons.location_searching_rounded,
-                  iconColor: KompakColors.primary,
-                  value: '${event.radiusMeters} meter',
-                  label: 'Radius Absensi',
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _EventMetric(
-                  icon: Icons.workspace_premium_rounded,
-                  iconColor: _AdminEventsViewState._orange,
-                  value:
-                      '+${NumberFormat.decimalPattern('id_ID').format(event.rewardPoints)} Pts',
-                  label: 'Reward',
-                  valueColor: _AdminEventsViewState._orange,
-                ),
-              ),
-            ],
-          ),
-          if (event.status
-              case AdminEventRecordStatus.draft ||
-                  AdminEventRecordStatus.published) ...[
-            const SizedBox(height: 16),
-            _EventActions(
-              event: event,
-              enabled: actionsEnabled,
-              isUpdating: isUpdating,
-              onStatusChange: onStatusChange,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

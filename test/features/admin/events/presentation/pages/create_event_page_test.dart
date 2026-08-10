@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kompak_app/core/theme/app_theme.dart';
 import 'package:kompak_app/features/admin/events/domain/entities/admin_event.dart';
 import 'package:kompak_app/features/admin/events/domain/entities/create_admin_event_request.dart';
+import 'package:kompak_app/features/admin/events/domain/entities/admin_event_overview.dart';
+import 'package:kompak_app/features/admin/events/domain/entities/update_admin_event_request.dart';
 import 'package:kompak_app/features/admin/events/domain/entities/event_location_selection.dart';
 import 'package:kompak_app/features/admin/events/domain/repositories/admin_events_repository.dart';
 import 'package:kompak_app/features/admin/events/presentation/bloc/create_event_cubit.dart';
@@ -204,6 +206,24 @@ class _FakeAdminEventsRepository implements AdminEventsRepository {
 
   @override
   Future<List<AdminEvent>> getEvents() async => [];
+
+  @override
+  Future<AdminEventOverview> getEventOverview(String eventId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AdminEvent> updateEvent(
+    String eventId,
+    UpdateAdminEventRequest request,
+  ) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteEvent(String eventId) {
+    throw UnimplementedError();
+  }
 
   @override
   Future<AdminEvent> updateEventStatus(

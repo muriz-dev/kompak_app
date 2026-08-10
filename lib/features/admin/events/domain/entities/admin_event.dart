@@ -46,9 +46,9 @@ class AdminEvent extends Equatable {
     createdBy: json['createdBy'] as String,
     title: json['title'] as String,
     description: json['description'] as String,
-    eventDate: _parseDate(json['eventDate']),
-    attendanceStartTime: _parseDate(json['attendanceStartTime']),
-    attendanceEndTime: _parseDate(json['attendanceEndTime']),
+    eventDate: parseDate(json['eventDate']),
+    attendanceStartTime: parseDate(json['attendanceStartTime']),
+    attendanceEndTime: parseDate(json['attendanceEndTime']),
     rewardPoints: (json['rewardPoints'] as num).toInt(),
     latitude: (json['latitude'] as num).toDouble(),
     longitude: (json['longitude'] as num).toDouble(),
@@ -82,7 +82,7 @@ class AdminEvent extends Equatable {
     AdminEventRecordStatus.published => AdminEventLifecycle.ongoing,
   };
 
-  static DateTime _parseDate(Object? value) => switch (value) {
+  static DateTime parseDate(Object? value) => switch (value) {
     String raw => DateTime.parse(raw),
     int milliseconds => DateTime.fromMillisecondsSinceEpoch(milliseconds),
     num milliseconds => DateTime.fromMillisecondsSinceEpoch(

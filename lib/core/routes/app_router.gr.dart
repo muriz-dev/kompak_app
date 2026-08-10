@@ -63,6 +63,58 @@ class ActivityDetailRouteArgs {
 }
 
 /// generated route for
+/// [AdminEventDetailPage]
+class AdminEventDetailRoute extends PageRouteInfo<AdminEventDetailRouteArgs> {
+  AdminEventDetailRoute({
+    required String eventId,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AdminEventDetailRoute.name,
+         args: AdminEventDetailRouteArgs(eventId: eventId, key: key),
+         rawPathParams: {'eventId': eventId},
+         initialChildren: children,
+       );
+
+  static const String name = 'AdminEventDetailRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<AdminEventDetailRouteArgs>(
+        orElse: () =>
+            AdminEventDetailRouteArgs(eventId: pathParams.getString('eventId')),
+      );
+      return AdminEventDetailPage(eventId: args.eventId, key: args.key);
+    },
+  );
+}
+
+class AdminEventDetailRouteArgs {
+  const AdminEventDetailRouteArgs({required this.eventId, this.key});
+
+  final String eventId;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'AdminEventDetailRouteArgs{eventId: $eventId, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AdminEventDetailRouteArgs) return false;
+    return eventId == other.eventId && key == other.key;
+  }
+
+  @override
+  int get hashCode => eventId.hashCode ^ key.hashCode;
+}
+
+/// generated route for
 /// [AdminEventsPage]
 class AdminEventsRoute extends PageRouteInfo<void> {
   const AdminEventsRoute({List<PageRouteInfo>? children})
@@ -176,6 +228,53 @@ class CreateEventRouteArgs {
 
   @override
   int get hashCode => key.hashCode ^ initialLocation.hashCode;
+}
+
+/// generated route for
+/// [EditEventPage]
+class EditEventRoute extends PageRouteInfo<EditEventRouteArgs> {
+  EditEventRoute({
+    required AdminEvent event,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         EditEventRoute.name,
+         args: EditEventRouteArgs(event: event, key: key),
+         initialChildren: children,
+       );
+
+  static const String name = 'EditEventRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<EditEventRouteArgs>();
+      return EditEventPage(event: args.event, key: args.key);
+    },
+  );
+}
+
+class EditEventRouteArgs {
+  const EditEventRouteArgs({required this.event, this.key});
+
+  final AdminEvent event;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'EditEventRouteArgs{event: $event, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! EditEventRouteArgs) return false;
+    return event == other.event && key == other.key;
+  }
+
+  @override
+  int get hashCode => event.hashCode ^ key.hashCode;
 }
 
 /// generated route for

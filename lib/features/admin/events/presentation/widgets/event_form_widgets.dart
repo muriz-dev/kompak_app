@@ -109,6 +109,7 @@ InputDecoration eventInputDecoration({
 
 class EventPosterPicker extends StatelessWidget {
   final Uint8List? imageBytes;
+  final String? existingImageUrl;
   final String? fileName;
   final String? errorText;
   final VoidCallback onPick;
@@ -117,6 +118,7 @@ class EventPosterPicker extends StatelessWidget {
   const EventPosterPicker({
     super.key,
     required this.imageBytes,
+    this.existingImageUrl,
     required this.fileName,
     required this.errorText,
     required this.onPick,
@@ -130,9 +132,9 @@ class EventPosterPicker extends StatelessWidget {
       children: [
         Semantics(
           button: true,
-          label: imageBytes == null
+          label: imageBytes == null && existingImageUrl == null
               ? 'Pilih poster kegiatan dari galeri'
-              : 'Ganti poster kegiatan, file $fileName',
+              : 'Ganti poster kegiatan${fileName == null ? '' : ', file $fileName'}',
           child: CustomPaint(
             painter: _DashedBorderPainter(
               color: errorText == null
@@ -147,10 +149,11 @@ class EventPosterPicker extends StatelessWidget {
                 child: SizedBox(
                   width: double.infinity,
                   height: 145,
-                  child: imageBytes == null
+                  child: imageBytes == null && existingImageUrl == null
                       ? const _EmptyPosterPicker()
                       : _PosterPreview(
-                          imageBytes: imageBytes!,
+                          imageBytes: imageBytes,
+                          imageUrl: existingImageUrl,
                           fileName: fileName ?? 'poster',
                           onRemove: onRemove,
                         ),
@@ -204,12 +207,14 @@ class _EmptyPosterPicker extends StatelessWidget {
 }
 
 class _PosterPreview extends StatelessWidget {
-  final Uint8List imageBytes;
+  final Uint8List? imageBytes;
+  final String? imageUrl;
   final String fileName;
   final VoidCallback onRemove;
 
   const _PosterPreview({
     required this.imageBytes,
+    required this.imageUrl,
     required this.fileName,
     required this.onRemove,
   });
@@ -221,11 +226,26 @@ class _PosterPreview extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.memory(
-            imageBytes,
-            fit: BoxFit.cover,
-            excludeFromSemantics: true,
-          ),
+          child: imageBytes != null
+              ? Image.memory(
+                  imageBytes!,
+                  fit: BoxFit.cover,
+                  excludeFromSemantics: true,
+                )
+              : Image.network(
+                  imageUrl!,
+                  fit: BoxFit.cover,
+                  excludeFromSemantics: true,
+                  errorBuilder: (_, _, _) => const ColoredBox(
+                    color: eventFormFill,
+                    child: Center(
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        color: eventFormMuted,
+                      ),
+                    ),
+                  ),
+                ),
         ),
         Positioned(
           left: 12,
