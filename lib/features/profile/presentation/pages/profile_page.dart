@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/routes/app_router.dart';
 import '../widgets/profile_view.dart';
 import '../../../auth/presentation/session/session_cubit.dart';
+import '../../../auth/presentation/session/session_state.dart';
 
 @RoutePage()
 class ProfilePage extends StatelessWidget {
@@ -13,8 +14,16 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessionState = context.watch<SessionCubit>().state;
+    if (sessionState is! SessionWithUser) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return ProfileView(
-      data: ProfileViewData.placeholder,
+      data: ProfileViewData.fromSessionUser(sessionState.user),
       onBack: () => context.router.maybePop(),
       onForgotPassword: () => context.router.push(const ForgotPasswordRoute()),
       onHelpPhoneTap: () => _copyHelpPhone(context),

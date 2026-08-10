@@ -3,8 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/widgets/kompak_bottom_navigation.dart';
+import '../../../../core/widgets/user_avatar.dart';
+import '../../../auth/domain/entities/session_user.dart';
 
 const _profileBlue = Color(0xFF2F67E8);
 const _profileGreen = Color(0xFF0DBA75);
@@ -17,76 +20,27 @@ class ProfileViewData {
     required this.name,
     required this.phone,
     required this.birthDate,
-    required this.address,
     required this.email,
-    required this.avatarUrl,
-    required this.achievements,
   });
 
-  static const helpPhone = '081234567890';
-
-  static const placeholder = ProfileViewData(
-    name: 'Handoyo',
-    phone: '081234567890',
-    birthDate: '01/01/2001',
-    address: 'Jl. Jalan dengan sepatu rodaku',
-    email: 'emailku@email.com',
-    avatarUrl: 'https://i.pravatar.cc/300?img=11',
-    achievements: [
-      ProfileAchievement(
-        value: '1',
-        label: 'Juara',
-        color: Color(0xFFFF9D24),
-        innerColor: Color(0xFFFFB95F),
-      ),
-      ProfileAchievement(
-        value: '0',
-        label: 'Kegiatan',
-        color: Color(0xFF7C8289),
-        innerColor: Color(0xFFAEB3B8),
-      ),
-      ProfileAchievement(
-        value: '1',
-        label: 'Kegiatan',
-        color: Color(0xFF11AF70),
-        innerColor: Color(0xFF62D3A5),
-      ),
-      ProfileAchievement(
-        value: '20',
-        label: 'Point',
-        color: Color(0xFF2F67E8),
-        innerColor: Color(0xFF70A0F7),
-      ),
-      ProfileAchievement(
-        value: '3',
-        label: 'Streak',
-        color: Color(0xFFF2524C),
-        innerColor: Color(0xFFFF8580),
-      ),
-    ],
+  factory ProfileViewData.fromSessionUser(SessionUser user) => ProfileViewData(
+    name: user.name,
+    phone: user.phoneNumber,
+    birthDate: _formatBirthDate(user.birthDate),
+    email: user.email,
   );
+
+  static const helpPhone = '081234567890';
 
   final String name;
   final String phone;
   final String birthDate;
-  final String address;
   final String email;
-  final String avatarUrl;
-  final List<ProfileAchievement> achievements;
 }
 
-class ProfileAchievement {
-  const ProfileAchievement({
-    required this.value,
-    required this.label,
-    required this.color,
-    required this.innerColor,
-  });
-
-  final String value;
-  final String label;
-  final Color color;
-  final Color innerColor;
+String _formatBirthDate(String value) {
+  final date = DateTime.tryParse(value);
+  return date == null ? value : DateFormat('dd/MM/yyyy').format(date);
 }
 
 class ProfileView extends StatefulWidget {
@@ -179,8 +133,6 @@ class _ProfileViewState extends State<ProfileView> {
                         onForgotPassword: widget.onForgotPassword,
                       ),
                       const SizedBox(height: 26),
-                      _AchievementCard(achievements: widget.data.achievements),
-                      const SizedBox(height: 26),
                       _HelpCard(onTap: widget.onHelpPhoneTap),
                       const SizedBox(height: 26),
                       SizedBox(
@@ -225,7 +177,14 @@ class _ProfileViewState extends State<ProfileView> {
                     duration: const Duration(milliseconds: 180),
                     curve: Curves.easeOutCubic,
                     child: Center(
-                      child: _ProfileAvatar(url: widget.data.avatarUrl),
+                      child: UserAvatar(
+                        name: widget.data.name,
+                        size: 116,
+                        borderColor: _profileGreen,
+                        borderWidth: 4,
+                        backgroundColor: const Color(0xFFE7EEFF),
+                        foregroundColor: _profileBlue,
+                      ),
                     ),
                   ),
                 ),
@@ -330,43 +289,6 @@ class _ProfileTopBar extends StatelessWidget {
   }
 }
 
-class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({required this.url});
-
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      image: true,
-      label: 'Foto profil',
-      child: Container(
-        width: 116,
-        height: 116,
-        padding: const EdgeInsets.all(4),
-        decoration: const BoxDecoration(
-          color: _profileGreen,
-          shape: BoxShape.circle,
-        ),
-        child: ClipOval(
-          child: ColoredBox(
-            color: const Color(0xFFE7EBEF),
-            child: Image.network(
-              url,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const Icon(
-                Icons.person_rounded,
-                size: 64,
-                color: _profileMuted,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PersonalInformationCard extends StatelessWidget {
   const _PersonalInformationCard({required this.data});
 
@@ -382,12 +304,6 @@ class _PersonalInformationCard extends StatelessWidget {
           _ReadOnlyProfileField(label: 'Nomor Telepon', value: data.phone),
           const SizedBox(height: 18),
           _ReadOnlyProfileField(label: 'Tanggal Lahir', value: data.birthDate),
-          const SizedBox(height: 18),
-          _ReadOnlyProfileField(
-            label: 'Alamat',
-            value: data.address,
-            icon: Icons.location_on_outlined,
-          ),
         ],
       ),
     );
@@ -450,15 +366,10 @@ class _ProfileSection extends StatelessWidget {
 }
 
 class _ReadOnlyProfileField extends StatelessWidget {
-  const _ReadOnlyProfileField({
-    required this.label,
-    required this.value,
-    this.icon,
-  });
+  const _ReadOnlyProfileField({required this.label, required this.value});
 
   final String label;
   final String value;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -487,10 +398,6 @@ class _ReadOnlyProfileField extends StatelessWidget {
             ),
             child: Row(
               children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 22, color: _profileMuted),
-                  const SizedBox(width: 10),
-                ],
                 Expanded(
                   child: Text(
                     value,
@@ -509,129 +416,6 @@ class _ReadOnlyProfileField extends StatelessWidget {
       ),
     );
   }
-}
-
-class _AchievementCard extends StatelessWidget {
-  const _AchievementCard({required this.achievements});
-
-  final List<ProfileAchievement> achievements;
-
-  @override
-  Widget build(BuildContext context) {
-    return _ProfileSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Pencapaian',
-            style: TextStyle(
-              color: _profileInk,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: achievements
-                .map((achievement) => _AchievementBadge(data: achievement))
-                .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AchievementBadge extends StatelessWidget {
-  const _AchievementBadge({required this.data});
-
-  final ProfileAchievement data;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Semantics(
-        label: '${data.label}: ${data.value}',
-        child: Column(
-          children: [
-            SizedBox(
-              width: 48,
-              height: 54,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  ClipPath(
-                    clipper: const _HexagonClipper(),
-                    child: ColoredBox(
-                      color: data.color,
-                      child: const SizedBox.expand(),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 38,
-                    height: 43,
-                    child: ClipPath(
-                      clipper: const _HexagonClipper(),
-                      child: ColoredBox(
-                        color: data.innerColor,
-                        child: Center(
-                          child: Text(
-                            data.value,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              height: 1,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 5),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  data.label,
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: data.color,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HexagonClipper extends CustomClipper<Path> {
-  const _HexagonClipper();
-
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(size.width * 0.5, 0)
-      ..lineTo(size.width, size.height * 0.25)
-      ..lineTo(size.width, size.height * 0.75)
-      ..lineTo(size.width * 0.5, size.height)
-      ..lineTo(0, size.height * 0.75)
-      ..lineTo(0, size.height * 0.25)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _HelpCard extends StatelessWidget {

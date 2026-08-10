@@ -206,6 +206,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(MainPage), findsOneWidget);
+    expect(find.text('Selamat Siang, Olivia Rhye!'), findsOneWidget);
+    expect(find.text('90'), findsOneWidget);
     expect(find.text('Menunggu Persetujuan'), findsNothing);
   });
 

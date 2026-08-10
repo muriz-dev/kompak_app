@@ -42,7 +42,7 @@ class PointsCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                padding: const EdgeInsets.fromLTRB(20, 17, 20, 17),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

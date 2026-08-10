@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/user_avatar.dart';
 
 class ProfileModeSheet extends StatelessWidget {
   const ProfileModeSheet({
@@ -89,27 +90,11 @@ class _AccountRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             children: [
-              Container(
-                width: 58,
-                height: 58,
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                  color: KompakColors.success,
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    'https://i.pravatar.cc/300?img=11',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const ColoredBox(
-                      color: KompakColors.primarySurface,
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: KompakColors.mutedInk,
-                      ),
-                    ),
-                  ),
-                ),
+              UserAvatar(
+                name: name,
+                size: 58,
+                borderColor: KompakColors.success,
+                borderWidth: 3,
               ),
               const SizedBox(width: 14),
               Expanded(

@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kompak_app/features/auth/domain/entities/session_user.dart';
 import 'package:kompak_app/features/profile/presentation/widgets/profile_view.dart';
 
 void main() {
+  const user = SessionUser(
+    id: 'resident-1',
+    name: 'Olivia Rhye',
+    email: 'olivia@example.com',
+    phoneNumber: '+628123456789',
+    birthDate: '1995-06-12',
+    balance: 1200,
+    leaderboardPoints: 90,
+    status: UserStatus.active,
+    role: UserRole.citizen,
+  );
+
   Widget buildView({
     VoidCallback? onForgotPassword,
     VoidCallback? onHelpPhoneTap,
@@ -11,7 +24,7 @@ void main() {
   }) {
     return MaterialApp(
       home: ProfileView(
-        data: ProfileViewData.placeholder,
+        data: ProfileViewData.fromSessionUser(user),
         onBack: () {},
         onForgotPassword: onForgotPassword ?? () {},
         onHelpPhoneTap: onHelpPhoneTap ?? () {},
@@ -27,16 +40,23 @@ void main() {
     await tester.pumpWidget(buildView());
 
     expect(find.text('Profile Anda'), findsOneWidget);
-    expect(find.text('Handoyo'), findsOneWidget);
+    expect(find.text('Olivia Rhye'), findsOneWidget);
+    expect(find.text('+628123456789'), findsOneWidget);
+    expect(find.text('12/06/1995'), findsOneWidget);
+    expect(find.text('olivia@example.com'), findsOneWidget);
+    expect(find.text('OR'), findsOneWidget);
     expect(find.text('Nomor Telepon'), findsOneWidget);
     expect(find.text('Tanggal Lahir'), findsOneWidget);
+    expect(find.text('Alamat'), findsNothing);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Absensi'), findsOneWidget);
     expect(find.text('Toko'), findsOneWidget);
     expect(find.text('Peringkat'), findsOneWidget);
   });
 
-  testWidgets('shows achievements, help, and account actions', (tester) async {
+  testWidgets('shows help and account actions without fake achievements', (
+    tester,
+  ) async {
     var forgotPasswordTapped = false;
     var helpTapped = false;
     var logoutTapped = false;
@@ -60,7 +80,7 @@ void main() {
     );
     helpPhoneButton.onTap?.call();
     expect(helpTapped, isTrue);
-    expect(find.text('Pencapaian'), findsOneWidget);
+    expect(find.text('Pencapaian'), findsNothing);
 
     final logoutButton = tester.widget<TextButton>(
       find.byKey(const ValueKey('profile-logout-button')),
@@ -78,7 +98,7 @@ void main() {
     await tester.pumpWidget(buildView());
 
     expect(find.text('Profile Anda'), findsOneWidget);
-    expect(find.text('Pencapaian'), findsOneWidget);
+    expect(find.text('Pencapaian'), findsNothing);
     expect(find.text('Peringkat'), findsOneWidget);
   });
 }

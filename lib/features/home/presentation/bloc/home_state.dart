@@ -11,18 +11,16 @@ abstract class HomeState extends Equatable {
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
-  final UserSummary userSummary;
   final List<UpcomingActivity> upcomingActivities;
   final List<Announcement> announcements;
 
   const HomeLoaded({
-    required this.userSummary,
     required this.upcomingActivities,
     required this.announcements,
   });
 
   @override
-  List<Object?> get props => [userSummary, upcomingActivities, announcements];
+  List<Object?> get props => [upcomingActivities, announcements];
 }
 
 class HomeError extends HomeState {

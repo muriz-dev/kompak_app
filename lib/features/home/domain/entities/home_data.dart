@@ -1,17 +1,8 @@
 class UserSummary {
   final String name;
   final int points;
-  final String level;
-  final int pointsToNextLevel;
-  final double levelProgress; // 0.0 to 1.0
 
-  UserSummary({
-    required this.name,
-    required this.points,
-    required this.level,
-    required this.pointsToNextLevel,
-    required this.levelProgress,
-  });
+  UserSummary({required this.name, required this.points});
 }
 
 class UpcomingActivity {

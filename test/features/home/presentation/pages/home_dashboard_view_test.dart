@@ -4,13 +4,7 @@ import 'package:kompak_app/features/home/domain/entities/home_data.dart';
 import 'package:kompak_app/features/home/presentation/pages/home_page.dart';
 
 void main() {
-  final userSummary = UserSummary(
-    name: 'Pak Budi',
-    points: 1250,
-    level: 'Warga Aktif',
-    pointsToNextLevel: 150,
-    levelProgress: 0.8,
-  );
+  final userSummary = UserSummary(name: 'Olivia Rhye', points: 90);
   final activities = [
     UpcomingActivity(
       id: 'activity-1',
@@ -62,8 +56,9 @@ void main() {
   ) async {
     await tester.pumpWidget(buildDashboard());
 
-    expect(find.text('Selamat Siang, Pak Budi!'), findsOneWidget);
-    expect(find.text('1.250'), findsOneWidget);
+    expect(find.text('Selamat Siang, Olivia Rhye!'), findsOneWidget);
+    expect(find.text('90'), findsOneWidget);
+    expect(find.text('OR'), findsOneWidget);
     expect(find.text('Tukarkan Poin ke Toko Poin'), findsOneWidget);
     expect(find.text('Kegiatan Mendatang'), findsOneWidget);
     expect(find.text('Rapat Triwulan RT'), findsOneWidget);
@@ -146,7 +141,7 @@ void main() {
 
     await tester.pumpWidget(buildDashboard());
 
-    expect(find.text('Selamat Siang, Pak Budi!'), findsOneWidget);
-    expect(find.text('1.250'), findsOneWidget);
+    expect(find.text('Selamat Siang, Olivia Rhye!'), findsOneWidget);
+    expect(find.text('90'), findsOneWidget);
   });
 }

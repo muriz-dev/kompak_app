@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/routes/app_router.dart';
+import '../../../../core/widgets/user_avatar.dart';
 import '../../domain/entities/home_data.dart';
 import '../bloc/home_cubit.dart';
 import '../bloc/home_state.dart';
@@ -26,6 +27,20 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessionState = context.watch<SessionCubit>().state;
+    final activeUser = sessionState is SessionActive ? sessionState.user : null;
+    if (activeUser == null) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final userSummary = UserSummary(
+      name: activeUser.name,
+      points: activeUser.leaderboardPoints,
+    );
+
     return BlocProvider(
       create: (_) => getIt<HomeCubit>()..loadHomeData(),
       child: Scaffold(
@@ -34,7 +49,7 @@ class HomePage extends StatelessWidget {
           builder: (context, state) {
             return switch (state) {
               HomeLoaded() => HomeDashboardView(
-                userSummary: state.userSummary,
+                userSummary: userSummary,
                 activities: state.upcomingActivities,
                 announcements: state.announcements,
                 onNotificationTap: () =>
@@ -124,7 +139,7 @@ class HomePage extends StatelessWidget {
           ),
         );
       },
-      transitionBuilder: (_, animation, __, child) {
+      transitionBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -178,6 +193,7 @@ class HomeDashboardView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _DashboardHeader(
+              userName: userSummary.name,
               onNotificationTap: onNotificationTap,
               onProfileTap: onProfileTap,
             ),
@@ -290,10 +306,12 @@ class _EmptyActivities extends StatelessWidget {
 
 class _DashboardHeader extends StatelessWidget {
   const _DashboardHeader({
+    required this.userName,
     required this.onNotificationTap,
     required this.onProfileTap,
   });
 
+  final String userName;
   final VoidCallback onNotificationTap;
   final VoidCallback onProfileTap;
 
@@ -346,28 +364,11 @@ class _DashboardHeader extends StatelessWidget {
                 key: const ValueKey('home-profile-button'),
                 onTap: onProfileTap,
                 customBorder: const CircleBorder(),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF0DBA75),
-                    shape: BoxShape.circle,
-                  ),
-                  child: ClipOval(
-                    child: ColoredBox(
-                      color: const Color(0xFFE7EBEF),
-                      child: Image.network(
-                        'https://i.pravatar.cc/300?img=11',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.person_rounded,
-                          color: Color(0xFF68707A),
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                  ),
+                child: UserAvatar(
+                  name: userName,
+                  size: 48,
+                  borderColor: const Color(0xFF0DBA75),
+                  borderWidth: 3,
                 ),
               ),
             ),

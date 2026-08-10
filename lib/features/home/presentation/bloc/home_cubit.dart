@@ -17,15 +17,6 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       final events = await _eventsRepository.getEvents(EventTimeframe.upcoming);
 
-      // Profile summary and announcements remain separate integration slices.
-      final userSummary = UserSummary(
-        name: 'Pak Budi',
-        points: 1250,
-        level: 'Warga Aktif',
-        pointsToNextLevel: 150,
-        levelProgress: 1250 / 1400, // Just a rough calculation for UI
-      );
-
       final upcomingActivities = events
           .map(
             (event) => UpcomingActivity(
@@ -52,7 +43,6 @@ class HomeCubit extends Cubit<HomeState> {
 
       emit(
         HomeLoaded(
-          userSummary: userSummary,
           upcomingActivities: upcomingActivities,
           announcements: announcements,
         ),
