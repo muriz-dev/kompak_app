@@ -24,19 +24,20 @@ class RewardCard extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Hadiah Pemenang',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
           ...rewards.map((reward) {
             Color avatarColor;
-            if (reward.rank == 1) avatarColor = const Color(0xFF2563EB); // Blue
-            else if (reward.rank == 2) avatarColor = const Color(0xFF10B981); // Green
-            else avatarColor = const Color(0xFFF59E0B); // Orange
+            if (reward.rank == 1) {
+              avatarColor = const Color(0xFF2563EB); // Blue
+            } else if (reward.rank == 2) {
+              avatarColor = const Color(0xFF10B981); // Green
+            } else {
+              avatarColor = const Color(0xFFF59E0B); // Orange
+            }
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -52,7 +53,10 @@ class RewardCard extends StatelessWidget {
                     backgroundColor: avatarColor,
                     child: Text(
                       '${reward.rank}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -68,20 +72,23 @@ class RewardCard extends StatelessWidget {
                             fontSize: 14,
                           ),
                         ),
-                        Text(
-                          reward.description,
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
+                        if (reward.description.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            reward.description,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

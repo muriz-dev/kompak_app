@@ -17,7 +17,7 @@ class LeaderboardListItem extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -40,29 +40,21 @@ class LeaderboardListItem extends StatelessWidget {
           const SizedBox(width: 12),
           CircleAvatar(
             radius: 20,
-            backgroundImage: NetworkImage(entry.avatarUrl),
-            backgroundColor: Colors.grey.shade200,
+            backgroundColor: const Color(0xFFE8F0FF),
+            child: Text(
+              _initials(entry.name),
+              style: const TextStyle(
+                color: Color(0xFF2563EB),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  entry.location,
-                  style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+            child: Text(
+              entry.name,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ),
           Row(
@@ -82,5 +74,13 @@ class LeaderboardListItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _initials(String name) {
+    final words = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty);
+    return words.take(2).map((word) => word[0].toUpperCase()).join();
   }
 }

@@ -11,11 +11,11 @@ abstract class LeaderboardState extends Equatable {
 class LeaderboardLoading extends LeaderboardState {}
 
 class LeaderboardLoaded extends LeaderboardState {
-  final List<LeaderboardWinner> winners; // Top 3
-  final List<LeaderboardEntry> otherEntries; // Rank 4 and below
+  final List<LeaderboardEntry> winners;
+  final List<LeaderboardEntry> otherEntries;
   final List<LeaderboardReward> rewards;
   final LeaderboardStats stats;
-  final LeaderboardEntry currentUserRank; // Rank of the current user
+  final LeaderboardEntry? currentUserRank;
 
   const LeaderboardLoaded({
     required this.winners,
@@ -26,7 +26,13 @@ class LeaderboardLoaded extends LeaderboardState {
   });
 
   @override
-  List<Object?> get props => [winners, otherEntries, rewards, stats, currentUserRank];
+  List<Object?> get props => [
+    winners,
+    otherEntries,
+    rewards,
+    stats,
+    currentUserRank,
+  ];
 }
 
 class LeaderboardError extends LeaderboardState {

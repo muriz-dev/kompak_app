@@ -75,6 +75,12 @@ import '../../features/events/domain/repositories/community_events_repository.da
 import '../../features/events/presentation/bloc/activity_detail_cubit.dart'
     as _i886;
 import '../../features/home/presentation/bloc/home_cubit.dart' as _i816;
+import '../../features/leaderboard/data/datasources/leaderboard_remote_data_source.dart'
+    as _i386;
+import '../../features/leaderboard/data/repositories/leaderboard_repository_impl.dart'
+    as _i1008;
+import '../../features/leaderboard/domain/repositories/leaderboard_repository.dart'
+    as _i655;
 import '../../features/leaderboard/presentation/bloc/leaderboard_cubit.dart'
     as _i100;
 import '../../features/store/data/datasources/point_shop_remote_data_source.dart'
@@ -110,7 +116,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => sharedPrefsModule.prefs,
       preResolve: true,
     );
-    gh.factory<_i100.LeaderboardCubit>(() => _i100.LeaderboardCubit());
     gh.lazySingleton<_i875.SessionInvalidationBus>(
       () => _i875.SessionInvalidationBus(),
       dispose: (i) => i.dispose(),
@@ -132,6 +137,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i680.AttendanceRemoteDataSource>(
       () => _i680.AttendanceRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i386.LeaderboardRemoteDataSource>(
+      () => _i386.LeaderboardRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i461.AdminEventsRemoteDataSource>(
       () => _i461.AdminEventsRemoteDataSourceImpl(gh<_i361.Dio>()),
@@ -179,6 +187,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i494.AttendanceCheckInCubit>(
       () => _i494.AttendanceCheckInCubit(gh<_i477.AttendanceRepository>()),
     );
+    gh.lazySingleton<_i655.LeaderboardRepository>(
+      () => _i1008.LeaderboardRepositoryImpl(
+        gh<_i386.LeaderboardRemoteDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i371.SessionCubit>(
       () => _i371.SessionCubit(
         gh<_i787.AuthRepository>(),
@@ -203,6 +216,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i767.AdminResidentsRepositoryImpl(
         gh<_i592.AdminResidentsRemoteDataSource>(),
       ),
+    );
+    gh.factory<_i100.LeaderboardCubit>(
+      () => _i100.LeaderboardCubit(gh<_i655.LeaderboardRepository>()),
     );
     gh.lazySingleton<_i775.PointShopRepository>(
       () =>

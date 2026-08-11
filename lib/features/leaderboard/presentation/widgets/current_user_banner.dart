@@ -3,8 +3,13 @@ import '../../domain/entities/leaderboard_data.dart';
 
 class CurrentUserBanner extends StatelessWidget {
   final LeaderboardEntry currentUser;
+  final int totalCitizens;
 
-  const CurrentUserBanner({super.key, required this.currentUser});
+  const CurrentUserBanner({
+    super.key,
+    required this.currentUser,
+    required this.totalCitizens,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +22,7 @@ class CurrentUserBanner extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -43,7 +48,7 @@ class CurrentUserBanner extends StatelessWidget {
                 Text(
                   'Tingkatkan partisipasi dalam kegiatan lingkungan untuk mendapatkan lebih banyak poin dan rewards menarik.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 12,
                   ),
                 ),
@@ -60,8 +65,15 @@ class CurrentUserBanner extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundImage: NetworkImage(currentUser.avatarUrl),
                   backgroundColor: Colors.white24,
+                  child: Text(
+                    _initials(currentUser.name),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -77,7 +89,7 @@ class CurrentUserBanner extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${currentUser.rank} / 124',
+                        '${currentUser.rank} / $totalCitizens',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -116,5 +128,13 @@ class CurrentUserBanner extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _initials(String name) {
+    final words = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty);
+    return words.take(2).map((word) => word[0].toUpperCase()).join();
   }
 }
