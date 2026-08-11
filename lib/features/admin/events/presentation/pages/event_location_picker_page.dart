@@ -14,11 +14,13 @@ class EventLocationPickerPage extends StatefulWidget {
     super.key,
     this.initialLatitude,
     this.initialLongitude,
+    this.initialRadiusMeters = EventLocationSelection.defaultRadiusMeters,
     this.locationService = const GeolocatorEventLocationService(),
   });
 
   final double? initialLatitude;
   final double? initialLongitude;
+  final int initialRadiusMeters;
   final EventLocationService locationService;
 
   @override
@@ -39,8 +41,21 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
       (final double latitude, final double longitude) => EventLocationSelection(
         latitude: latitude,
         longitude: longitude,
+        radiusMeters: widget.initialRadiusMeters
+            .clamp(
+              EventLocationSelection.minimumRadiusMeters,
+              EventLocationSelection.maximumRadiusMeters,
+            )
+            .toInt(),
       ),
-      _ => EventLocationSelection.jakarta,
+      _ => EventLocationSelection.jakarta.copyWith(
+        radiusMeters: widget.initialRadiusMeters
+            .clamp(
+              EventLocationSelection.minimumRadiusMeters,
+              EventLocationSelection.maximumRadiusMeters,
+            )
+            .toInt(),
+      ),
     };
   }
 
@@ -74,7 +89,7 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
                       maxZoom: 19,
                       onTap: (_, point) => _moveTo(point),
                       onPositionChanged: (camera, _) {
-                        final next = EventLocationSelection(
+                        final next = _selection.copyWith(
                           latitude: camera.center.latitude,
                           longitude: camera.center.longitude,
                         );
@@ -87,6 +102,19 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
                       TileLayer(
                         urlTemplate: AppConfig.mapTileUrl,
                         userAgentPackageName: AppConfig.mapUserAgentPackageName,
+                      ),
+                      CircleLayer(
+                        key: const ValueKey('event-radius-circle'),
+                        circles: [
+                          CircleMarker(
+                            point: center,
+                            radius: _selection.radiusMeters.toDouble(),
+                            useRadiusInMeter: true,
+                            color: eventFormBlue.withValues(alpha: 0.16),
+                            borderColor: eventFormBlue.withValues(alpha: 0.82),
+                            borderStrokeWidth: 2,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -115,6 +143,10 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
                 ],
               ),
             ),
+            _RadiusControlPanel(
+              radiusMeters: _selection.radiusMeters,
+              onChanged: _changeRadius,
+            ),
             _ConfirmationBar(onConfirm: _confirmSelection),
           ],
         ),
@@ -132,7 +164,11 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
       final location = await widget.locationService.getCurrentLocation();
       if (!mounted) return;
       _mapController.move(LatLng(location.latitude, location.longitude), 17);
-      setState(() => _selection = location);
+      setState(
+        () => _selection = location.copyWith(
+          radiusMeters: _selection.radiusMeters,
+        ),
+      );
     } on EventLocationException catch (error) {
       if (!mounted) return;
       _showLocationError(error.failure);
@@ -173,6 +209,12 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
 
   void _confirmSelection() {
     Navigator.of(context).maybePop(_selection);
+  }
+
+  void _changeRadius(int radiusMeters) {
+    setState(
+      () => _selection = _selection.copyWith(radiusMeters: radiusMeters),
+    );
   }
 }
 
@@ -334,6 +376,149 @@ class _MapAttribution extends StatelessWidget {
         child: Text(
           attribution,
           style: const TextStyle(color: eventFormInk, fontSize: 9),
+        ),
+      ),
+    );
+  }
+}
+
+class _RadiusControlPanel extends StatelessWidget {
+  const _RadiusControlPanel({
+    required this.radiusMeters,
+    required this.onChanged,
+  });
+
+  static const _presets = [25, 50, 100, 200];
+
+  final int radiusMeters;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: eventFormOutline)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 14, 24, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Radius Presensi',
+                        style: TextStyle(
+                          color: eventFormInk,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Warga harus berada di dalam area biru.',
+                        style: TextStyle(color: eventFormMuted, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: eventFormBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    child: Text(
+                      '$radiusMeters m',
+                      key: const ValueKey('event-radius-value'),
+                      style: const TextStyle(
+                        color: eventFormBlue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: eventFormBlue,
+                inactiveTrackColor: eventFormBlue.withValues(alpha: 0.16),
+                thumbColor: eventFormBlue,
+                overlayColor: eventFormBlue.withValues(alpha: 0.12),
+                trackHeight: 3,
+              ),
+              child: Slider(
+                key: const ValueKey('event-radius-slider'),
+                value: radiusMeters.toDouble(),
+                min: EventLocationSelection.minimumRadiusMeters.toDouble(),
+                max: EventLocationSelection.maximumRadiusMeters.toDouble(),
+                divisions:
+                    EventLocationSelection.maximumRadiusMeters -
+                    EventLocationSelection.minimumRadiusMeters,
+                label: '$radiusMeters meter',
+                onChanged: (value) => onChanged(value.round()),
+              ),
+            ),
+            Row(
+              children: [
+                for (final preset in _presets) ...[
+                  if (preset != _presets.first) const SizedBox(width: 8),
+                  Expanded(
+                    child: _RadiusPresetButton(
+                      radiusMeters: preset,
+                      selected: radiusMeters == preset,
+                      onPressed: () => onChanged(preset),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RadiusPresetButton extends StatelessWidget {
+  const _RadiusPresetButton({
+    required this.radiusMeters,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final int radiusMeters;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      child: OutlinedButton(
+        key: ValueKey('event-radius-preset-$radiusMeters'),
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          foregroundColor: selected ? Colors.white : eventFormBlue,
+          backgroundColor: selected ? eventFormBlue : Colors.white,
+          side: BorderSide(color: selected ? eventFormBlue : eventFormOutline),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: Text(
+          '$radiusMeters m',
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ),
     );

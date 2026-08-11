@@ -159,6 +159,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.updateRequest?.title, 'Kerja Bakti Blok B');
+    expect(repository.updateRequest?.radiusMeters, 50);
     expect(
       repository.updateRequest?.existingBannerUrl,
       'https://assets.test/poster.jpg',

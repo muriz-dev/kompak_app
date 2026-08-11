@@ -294,11 +294,13 @@ class EventLocationMapPreview extends StatelessWidget {
     required this.onTap,
     this.latitude,
     this.longitude,
+    this.radiusMeters = 50,
   });
 
   final VoidCallback onTap;
   final double? latitude;
   final double? longitude;
+  final int radiusMeters;
 
   @override
   Widget build(BuildContext context) {
@@ -336,6 +338,20 @@ class EventLocationMapPreview extends StatelessWidget {
                             urlTemplate: AppConfig.mapTileUrl,
                             userAgentPackageName:
                                 AppConfig.mapUserAgentPackageName,
+                          ),
+                          CircleLayer(
+                            circles: [
+                              CircleMarker(
+                                point: LatLng(latitude!, longitude!),
+                                radius: radiusMeters.toDouble(),
+                                useRadiusInMeter: true,
+                                color: eventFormBlue.withValues(alpha: 0.16),
+                                borderColor: eventFormBlue.withValues(
+                                  alpha: 0.82,
+                                ),
+                                borderStrokeWidth: 2,
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -392,6 +408,32 @@ class EventLocationMapPreview extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (hasSelection)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            'Radius $radiusMeters m',
+                            key: const ValueKey('event-map-radius-label'),
+                            style: const TextStyle(
+                              color: eventFormBlue,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   if (hasSelection)
                     Positioned(
                       right: 6,

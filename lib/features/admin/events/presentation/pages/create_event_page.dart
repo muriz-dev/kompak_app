@@ -283,6 +283,9 @@ class _CreateEventViewState extends State<CreateEventView> {
           onTap: _selectLocation,
           latitude: _selectedLocation?.latitude,
           longitude: _selectedLocation?.longitude,
+          radiusMeters:
+              _selectedLocation?.radiusMeters ??
+              EventLocationSelection.defaultRadiusMeters,
         ),
       ],
     );
@@ -470,6 +473,9 @@ class _CreateEventViewState extends State<CreateEventView> {
       EventLocationPickerRoute(
         initialLatitude: _selectedLocation?.latitude,
         initialLongitude: _selectedLocation?.longitude,
+        initialRadiusMeters:
+            _selectedLocation?.radiusMeters ??
+            EventLocationSelection.defaultRadiusMeters,
       ),
     );
     if (selected == null || !mounted) return;
@@ -533,6 +539,7 @@ class _CreateEventViewState extends State<CreateEventView> {
       rewardPoints: int.parse(_pointsController.text.trim()),
       latitude: location.latitude,
       longitude: location.longitude,
+      radiusMeters: location.radiusMeters,
       status: AdminEventRecordStatus.published,
       poster: _posterUpload(),
     );

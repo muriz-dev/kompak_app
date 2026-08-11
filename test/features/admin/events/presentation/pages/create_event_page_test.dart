@@ -98,7 +98,11 @@ void main() {
     final repository = _FakeAdminEventsRepository();
     await tester.pumpWidget(
       buildPage(
-        initialLocation: EventLocationSelection.jakarta,
+        initialLocation: const EventLocationSelection(
+          latitude: -6.2,
+          longitude: 106.816666,
+          radiusMeters: 125,
+        ),
         repository: repository,
       ),
     );
@@ -139,6 +143,7 @@ void main() {
     expect(find.text('Kegiatan Berhasil Dibuat!'), findsOneWidget);
     expect(repository.createRequest?.latitude, -6.2);
     expect(repository.createRequest?.longitude, 106.816666);
+    expect(repository.createRequest?.radiusMeters, 125);
     expect(repository.createRequest?.status, AdminEventRecordStatus.published);
     expect(
       repository.createRequest?.attendanceEndTime.isAfter(

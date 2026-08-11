@@ -73,6 +73,7 @@ class _EditEventViewState extends State<EditEventView> {
     _selectedLocation = EventLocationSelection(
       latitude: event.latitude,
       longitude: event.longitude,
+      radiusMeters: event.radiusMeters,
     );
     _existingBannerUrl = event.bannerUrl;
     _nameController.text = event.title;
@@ -280,6 +281,7 @@ class _EditEventViewState extends State<EditEventView> {
         onTap: _selectLocation,
         latitude: _selectedLocation.latitude,
         longitude: _selectedLocation.longitude,
+        radiusMeters: _selectedLocation.radiusMeters,
       ),
     ],
   );
@@ -469,6 +471,7 @@ class _EditEventViewState extends State<EditEventView> {
       EventLocationPickerRoute(
         initialLatitude: _selectedLocation.latitude,
         initialLongitude: _selectedLocation.longitude,
+        initialRadiusMeters: _selectedLocation.radiusMeters,
       ),
     );
     if (selected == null || !mounted) return;
@@ -520,7 +523,7 @@ class _EditEventViewState extends State<EditEventView> {
       rewardPoints: int.parse(_pointsController.text.trim()),
       latitude: _selectedLocation.latitude,
       longitude: _selectedLocation.longitude,
-      radiusMeters: widget.event.radiusMeters,
+      radiusMeters: _selectedLocation.radiusMeters,
       existingBannerUrl: _existingBannerUrl,
       poster: _posterUpload(),
     );

@@ -443,6 +443,7 @@ class EventLocationPickerRoute
     Key? key,
     double? initialLatitude,
     double? initialLongitude,
+    int initialRadiusMeters = EventLocationSelection.defaultRadiusMeters,
     EventLocationService locationService =
         const GeolocatorEventLocationService(),
     List<PageRouteInfo>? children,
@@ -452,6 +453,7 @@ class EventLocationPickerRoute
            key: key,
            initialLatitude: initialLatitude,
            initialLongitude: initialLongitude,
+           initialRadiusMeters: initialRadiusMeters,
            locationService: locationService,
          ),
          initialChildren: children,
@@ -469,6 +471,7 @@ class EventLocationPickerRoute
         key: args.key,
         initialLatitude: args.initialLatitude,
         initialLongitude: args.initialLongitude,
+        initialRadiusMeters: args.initialRadiusMeters,
         locationService: args.locationService,
       );
     },
@@ -480,6 +483,7 @@ class EventLocationPickerRouteArgs {
     this.key,
     this.initialLatitude,
     this.initialLongitude,
+    this.initialRadiusMeters = EventLocationSelection.defaultRadiusMeters,
     this.locationService = const GeolocatorEventLocationService(),
   });
 
@@ -489,11 +493,13 @@ class EventLocationPickerRouteArgs {
 
   final double? initialLongitude;
 
+  final int initialRadiusMeters;
+
   final EventLocationService locationService;
 
   @override
   String toString() {
-    return 'EventLocationPickerRouteArgs{key: $key, initialLatitude: $initialLatitude, initialLongitude: $initialLongitude, locationService: $locationService}';
+    return 'EventLocationPickerRouteArgs{key: $key, initialLatitude: $initialLatitude, initialLongitude: $initialLongitude, initialRadiusMeters: $initialRadiusMeters, locationService: $locationService}';
   }
 
   @override
@@ -503,6 +509,7 @@ class EventLocationPickerRouteArgs {
     return key == other.key &&
         initialLatitude == other.initialLatitude &&
         initialLongitude == other.initialLongitude &&
+        initialRadiusMeters == other.initialRadiusMeters &&
         locationService == other.locationService;
   }
 
@@ -511,6 +518,7 @@ class EventLocationPickerRouteArgs {
       key.hashCode ^
       initialLatitude.hashCode ^
       initialLongitude.hashCode ^
+      initialRadiusMeters.hashCode ^
       locationService.hashCode;
 }
 

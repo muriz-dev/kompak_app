@@ -9,6 +9,11 @@ void main() {
   testWidgets('uses the current location and returns the confirmed pin', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     const currentLocation = EventLocationSelection(
       latitude: -6.175392,
       longitude: 106.827153,
@@ -32,6 +37,7 @@ void main() {
                                 EventLocationSelection.jakarta.latitude,
                             initialLongitude:
                                 EventLocationSelection.jakarta.longitude,
+                            initialRadiusMeters: 75,
                             locationService: service,
                           ),
                         ),
@@ -50,6 +56,14 @@ void main() {
 
     expect(find.text('Pilih Lokasi'), findsOneWidget);
     expect(find.text('-6.200000, 106.816666'), findsOneWidget);
+    expect(find.text('Radius Presensi'), findsOneWidget);
+    expect(find.text('75 m'), findsOneWidget);
+    expect(find.byKey(const ValueKey('event-radius-circle')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('event-radius-preset-100')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('event-radius-value')), findsOneWidget);
+    expect(find.text('100 m'), findsWidgets);
 
     await tester.tap(
       find.byKey(const ValueKey('event-current-location-button')),
@@ -61,7 +75,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('confirm-event-location')));
     await tester.pumpAndSettle();
 
-    expect(result, currentLocation);
+    expect(result, currentLocation.copyWith(radiusMeters: 100));
   });
 
   testWidgets(
