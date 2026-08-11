@@ -5,6 +5,7 @@ import 'package:kompak_app/features/leaderboard/domain/repositories/leaderboard_
 import 'package:kompak_app/features/leaderboard/presentation/bloc/leaderboard_cubit.dart';
 import 'package:kompak_app/features/leaderboard/presentation/bloc/leaderboard_state.dart';
 import 'package:kompak_app/features/leaderboard/presentation/widgets/leaderboard_list_item.dart';
+import 'package:kompak_app/features/leaderboard/presentation/widgets/leaderboard_empty_preview.dart';
 import 'package:kompak_app/features/leaderboard/presentation/widgets/podium_widget.dart';
 
 void main() {
@@ -35,7 +36,8 @@ void main() {
   test(
     'maps the backend screen model into podium and remaining ranks',
     () async {
-      final cubit = LeaderboardCubit(_FakeLeaderboardRepository(data));
+      final repository = _FakeLeaderboardRepository(data);
+      final cubit = LeaderboardCubit(repository);
 
       await cubit.loadLeaderboardData();
 
@@ -45,6 +47,11 @@ void main() {
       expect(loaded.currentUserRank, entries[3]);
       expect(loaded.stats.totalPoints, 950);
       expect(loaded.rewards.single.title, 'Voucher Belanja');
+
+      await cubit.loadLeaderboardData();
+      expect(cubit.state, isA<LeaderboardLoaded>());
+      expect((cubit.state as LeaderboardLoaded).stats.totalPoints, 950);
+      expect(repository.loadCalls, 2);
     },
   );
 
@@ -98,13 +105,56 @@ void main() {
     expect(find.text('Rina Putri'), findsOneWidget);
     expect(find.textContaining('RT 04'), findsNothing);
   });
+
+  testWidgets('empty state previews the ranking structure and refreshes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    var refreshCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LeaderboardEmptyPreview(
+            onRefresh: () async => refreshCalls += 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Belum ada peringkat bulan ini'), findsOneWidget);
+    expect(find.textContaining('Ikuti kegiatan'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('leaderboard-empty-podium-preview')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('leaderboard-empty-stats-preview')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('leaderboard-empty-list-preview')),
+      findsOneWidget,
+    );
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 320));
+    await tester.pumpAndSettle();
+    expect(refreshCalls, 1);
+  });
 }
 
 class _FakeLeaderboardRepository implements LeaderboardRepository {
-  const _FakeLeaderboardRepository(this.data);
+  _FakeLeaderboardRepository(this.data);
 
   final LeaderboardData data;
+  int loadCalls = 0;
 
   @override
-  Future<LeaderboardData> getLeaderboard({int limit = 50}) async => data;
+  Future<LeaderboardData> getLeaderboard({int limit = 50}) async {
+    loadCalls += 1;
+    return data;
+  }
 }

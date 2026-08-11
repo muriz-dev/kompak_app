@@ -9,6 +9,7 @@ import '../widgets/podium_widget.dart';
 import '../widgets/reward_card.dart';
 import '../widgets/leaderboard_list_item.dart';
 import '../widgets/current_user_banner.dart';
+import '../widgets/leaderboard_empty_preview.dart';
 import '../widgets/leaderboard_stats_card.dart';
 
 @RoutePage()
@@ -24,14 +25,7 @@ class LeaderboardPage extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.black,
-              size: 20,
-            ),
-            onPressed: () {}, // Can hook to auto_route pop if needed
-          ),
+          automaticallyImplyLeading: false,
           title: const Text(
             'Peringkat Warga',
             style: TextStyle(
@@ -55,101 +49,110 @@ class LeaderboardPage extends StatelessWidget {
                 );
               } else if (state is LeaderboardLoaded) {
                 if (state.winners.isEmpty) {
-                  return const _LeaderboardEmptyView();
+                  return LeaderboardEmptyPreview(
+                    onRefresh: () =>
+                        context.read<LeaderboardCubit>().loadLeaderboardData(),
+                  );
                 }
                 return Stack(
                   children: [
                     // Main Scrollable Content
                     Positioned.fill(
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: 20,
-                                bottom: 24,
+                      child: RefreshIndicator(
+                        onRefresh: () => context
+                            .read<LeaderboardCubit>()
+                            .loadLeaderboardData(),
+                        child: CustomScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 20,
+                                  bottom: 24,
+                                ),
+                                child: PodiumWidget(winners: state.winners),
                               ),
-                              child: PodiumWidget(winners: state.winners),
                             ),
-                          ),
-                          if (state.rewards.isNotEmpty)
+                            if (state.rewards.isNotEmpty)
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                sliver: SliverToBoxAdapter(
+                                  child: RewardCard(rewards: state.rewards),
+                                ),
+                              ),
                             SliverPadding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              sliver: SliverToBoxAdapter(
-                                child: RewardCard(rewards: state.rewards),
-                              ),
-                            ),
-                          SliverPadding(
-                            padding: const EdgeInsets.all(16),
-                            sliver: SliverToBoxAdapter(
-                              child: Row(
-                                children: [
-                                  LeaderboardStatsCard(
-                                    title: 'TOTAL\nPARTISIPASI',
-                                    value: state.stats.participatingCitizens
-                                        .toString(),
-                                    subtitle: 'Warga Aktif',
-                                    backgroundColor: const Color(
-                                      0xFF2563EB,
-                                    ), // Blue
-                                  ),
-                                  const SizedBox(width: 12),
-                                  LeaderboardStatsCard(
-                                    title: 'POIN\nTERKUMPUL',
-                                    value: NumberFormat.compact(
-                                      locale: 'id_ID',
-                                    ).format(state.stats.totalPoints),
-                                    subtitle: '',
-                                    backgroundColor: const Color(
-                                      0xFF10B981,
-                                    ), // Green
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (state.otherEntries.isNotEmpty) ...[
-                            SliverPadding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
+                              padding: const EdgeInsets.all(16),
                               sliver: SliverToBoxAdapter(
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
-                                      'Peringkat Lainnya',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    LeaderboardStatsCard(
+                                      title: 'TOTAL\nPARTISIPASI',
+                                      value: state.stats.participatingCitizens
+                                          .toString(),
+                                      subtitle: 'Warga Aktif',
+                                      backgroundColor: const Color(
+                                        0xFF2563EB,
+                                      ), // Blue
+                                    ),
+                                    const SizedBox(width: 12),
+                                    LeaderboardStatsCard(
+                                      title: 'POIN\nTERKUMPUL',
+                                      value: NumberFormat.compact(
+                                        locale: 'id_ID',
+                                      ).format(state.stats.totalPoints),
+                                      subtitle: '',
+                                      backgroundColor: const Color(
+                                        0xFF10B981,
+                                      ), // Green
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            SliverPadding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) => LeaderboardListItem(
-                                    entry: state.otherEntries[index],
+                            if (state.otherEntries.isNotEmpty) ...[
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                sliver: SliverToBoxAdapter(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Peringkat Lainnya',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  childCount: state.otherEntries.length,
                                 ),
                               ),
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                sliver: SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) => LeaderboardListItem(
+                                      entry: state.otherEntries[index],
+                                    ),
+                                    childCount: state.otherEntries.length,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            // Extra padding at the bottom so the last item is not hidden by the banner
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 180),
                             ),
                           ],
-                          // Extra padding at the bottom so the last item is not hidden by the banner
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 180),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                     // Sticky Bottom Banner
@@ -169,41 +172,6 @@ class LeaderboardPage extends StatelessWidget {
               return const SizedBox.shrink();
             },
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LeaderboardEmptyView extends StatelessWidget {
-  const _LeaderboardEmptyView();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.emoji_events_outlined,
-              size: 56,
-              color: Color(0xFF2563EB),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Belum ada peringkat warga',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Peringkat akan muncul setelah warga memperoleh poin dari kegiatan.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF6B7280), height: 1.4),
-            ),
-          ],
         ),
       ),
     );
