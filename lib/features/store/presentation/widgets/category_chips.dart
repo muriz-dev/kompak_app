@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/store_data.dart';
 
 class CategoryChips extends StatelessWidget {
@@ -16,8 +18,9 @@ class CategoryChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 36,
+      height: 40,
       child: ListView.builder(
+        padding: EdgeInsets.zero,
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         itemBuilder: (context, index) {
@@ -30,13 +33,15 @@ class CategoryChips extends StatelessWidget {
               label: Text(category.name),
               selected: isActive,
               onSelected: (_) => onCategorySelected(category.id),
-              selectedColor: const Color(0xFF10B981), // Green
-              backgroundColor: const Color(0xFFECFDF5), // Light Green / Gray
+              selectedColor: KompakColors.success,
+              backgroundColor: KompakColors.successSurface,
               labelStyle: TextStyle(
-                color: isActive ? Colors.white : Colors.grey.shade700,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                color: isActive ? Colors.white : KompakColors.ink,
+                fontSize: 13,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
               ),
               side: BorderSide.none,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),

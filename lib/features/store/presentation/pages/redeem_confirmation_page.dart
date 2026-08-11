@@ -1,763 +1,645 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import '../../domain/entities/store_data.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
+
+import '../../../../core/config/app_config.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/routes/app_router.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/session/session_cubit.dart';
+import '../../domain/entities/store_data.dart';
+import '../bloc/redeem_cubit.dart';
+import '../widgets/reward_redemption_dialog.dart';
+import '../widgets/reward_visuals.dart';
 
 @RoutePage()
 class RedeemConfirmationPage extends StatelessWidget {
-  final StoreItem item;
+  const RedeemConfirmationPage({
+    super.key,
+    required this.item,
+    required this.availablePoints,
+  });
 
-  const RedeemConfirmationPage({super.key, required this.item});
+  final StoreItem item;
+  final int availablePoints;
 
   @override
   Widget build(BuildContext context) {
-    // For mock purposes, using hardcoded user points
-    const int userPoints = 1250;
-    final int remainingPoints = userPoints - item.points;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black87,
-            size: 20,
-          ),
-          onPressed: () => context.router.back(),
-        ),
-        title: const Text(
-          'Konfirmasi Penukaran',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 16,
-          bottom: 24,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Item Card
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        child: Image.network(
-                          item.imageUrlOrIcon.toString().startsWith('http')
-                              ? item.imageUrlOrIcon
-                              : 'https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?auto=format&fit=crop&w=800&q=80',
-                          height: 160,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            height: 160,
-                            width: double.infinity,
-                            color: Colors.grey.shade200,
-                            child: const Icon(Icons.image, color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                      if (item.isFeatured)
-                        Positioned(
-                          top: 12,
-                          left: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981), // Green
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'TERPOPULER',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.stars,
-                                  color: Color(0xFFF59E0B),
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${item.points}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFF59E0B),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item.description,
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 14,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Points summary row
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB), // Blue
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Poin Anda',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              userPoints.toString().replaceAllMapped(
-                                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                (Match m) => '${m[1]}.',
-                              ),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Points',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981), // Green
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Sisa Poin',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              remainingPoints.toString().replaceAllMapped(
-                                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                (Match m) => '${m[1]}.',
-                              ),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Points',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Location
-            const Text(
-              'Lokasi Pengambilan',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.storefront, color: Colors.white),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Posko RW 05',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Jl. Harmoni, No. 12, Sektor Selatan',
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Terms and Conditions
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981), // Green
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.white, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Syarat & Ketentuan',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Penukaran tidak dapat dibatalkan setelah konfirmasi. Voucher berlaku selama 7 hari kalender. Tunjukkan QR Code saat pengambilan barang.',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 12,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showRedeemSuccessDialog(context, item);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Konfirmasi Penukaran',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => context.router.back(),
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFFFEF2F2), // Light red
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Batalkan Penukaran',
-                    style: TextStyle(
-                      color: Color(0xFFEF4444), // Red 500
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    return BlocProvider(
+      create: (_) => getIt<RedeemCubit>(),
+      child: _RedeemConfirmationView(
+        item: item,
+        availablePoints: availablePoints,
       ),
     );
   }
+}
 
-  void _showRedeemSuccessDialog(BuildContext context, StoreItem item) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+class _RedeemConfirmationView extends StatelessWidget {
+  const _RedeemConfirmationView({
+    required this.item,
+    required this.availablePoints,
+  });
+
+  final StoreItem item;
+  final int availablePoints;
+
+  @override
+  Widget build(BuildContext context) {
+    final remainingPoints = availablePoints - item.points;
+    final canRedeem = remainingPoints >= 0 && item.stock > 0;
+
+    return BlocConsumer<RedeemCubit, RedeemState>(
+      listener: (context, state) async {
+        if (state is RedeemFailed) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(state.message)));
+          return;
+        }
+        if (state is! RedeemSucceeded) return;
+
+        context.read<SessionCubit>().updateBalance(state.redemption.balance);
+
+        final action = await showDialog<RedemptionDialogAction>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => RewardRedemptionDialog(
+            redemption: state.redemption,
+            createdNow: true,
           ),
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
+        );
+        if (!context.mounted) return;
+
+        switch (action) {
+          case RedemptionDialogAction.home:
+            context.router.replaceAll([
+              MainRoute(children: [const HomeRoute()]),
+            ]);
+          case RedemptionDialogAction.history:
+            context.router.replaceAll([
+              MainRoute(children: [const StoreRoute()]),
+              const PointHistoryRoute(),
+            ]);
+          case RedemptionDialogAction.close:
+          case null:
+            context.router.maybePop(true);
+        }
+      },
+      builder: (context, state) {
+        final isSubmitting = state is RedeemSubmitting;
+        return Scaffold(
+          backgroundColor: KompakColors.surface,
+          appBar: AppBar(
+            backgroundColor: KompakColors.surface,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              tooltip: 'Kembali',
+              icon: const Icon(
+                Icons.chevron_left,
+                color: KompakColors.ink,
+                size: 28,
+              ),
+              onPressed: isSubmitting ? null : () => context.router.maybePop(),
+            ),
+            title: const Text(
+              'Konfirmasi Penukaran',
+              style: TextStyle(
+                color: KompakColors.ink,
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+              ),
+            ),
+            centerTitle: true,
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Success Icon
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981), // Green
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Title
-                  const Text(
-                    'Penukaran Berhasil!',
-                    style: TextStyle(
-                      color: Color(0xFF2563EB), // Blue
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  const Text(
-                    'Selamat! Penukaran poin Anda\ntelah berhasil.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.black54, fontSize: 14),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Item Image
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      item.imageUrlOrIcon.toString().startsWith('http')
-                          ? item.imageUrlOrIcon
-                          : 'https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?auto=format&fit=crop&w=800&q=80',
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 120,
-                        width: double.infinity,
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.image, color: Colors.grey),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _RewardSummary(item: item),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _PointsSummary(
+                        label: 'Poin Anda',
+                        points: availablePoints,
+                        color: KompakColors.primary,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Item Name
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _PointsSummary(
+                        label: 'Sisa Poin',
+                        points: remainingPoints.clamp(0, availablePoints),
+                        color: canRedeem
+                            ? KompakColors.success
+                            : KompakColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+                if (!canRedeem) ...[
+                  const SizedBox(height: 10),
                   Text(
-                    item.title,
+                    item.stock <= 0
+                        ? 'Hadiah ini sudah habis.'
+                        : 'Poin Anda belum cukup untuk hadiah ini.',
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Dashed divider
-                  Row(
-                    children: List.generate(
-                      40,
-                      (index) => Expanded(
-                        child: Container(
-                          color: index % 2 == 0
-                              ? Colors.transparent
-                              : Colors.grey.shade300,
-                          height: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Details Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ID Referensi',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 10,
-                            ),
-                          ),
-                          const Text(
-                            '#KP-8829103',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Lokasi Penukaran',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 10,
-                            ),
-                          ),
-                          const Text(
-                            'Posko RW 05',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Waktu',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 10,
-                            ),
-                          ),
-                          const Text(
-                            '24 Okt 2023, 14:20',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Status',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 10,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'Berhasil',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // QR Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF), // Indigo 50
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Tunjukkan QR Code di bawah ini\npada Admin saat pengambilan\nbarang di lokasi.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.black87, fontSize: 12),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.qr_code_2,
-                            size: 100,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.download,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            label: const Text(
-                              'Unduh QR',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981), // Green
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 14,
-                              color: Colors.grey.shade500,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Berlaku hingga: 31 Okt 2023',
-                              style: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Actions
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.router.replaceAll([const MainRoute()]);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Kembali ke Beranda',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pop(context); // close dialog
-                        context.router.push(
-                          PointHistoryRoute(),
-                        ); // go to history
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFEEF2FF),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Lihat Riwayat Poin',
-                        style: TextStyle(
-                          color: Color(0xFF2563EB),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      color: KompakColors.error,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Lokasi Pengambilan',
+                  style: TextStyle(
+                    color: KompakColors.ink,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _PickupLocation(provider: item.provider),
+                const SizedBox(height: 14),
+                _PickupMap(provider: item.provider),
+                const SizedBox(height: 16),
+                _TermsCard(item: item),
+              ],
             ),
+          ),
+          bottomNavigationBar: _ConfirmationActions(
+            enabled: canRedeem && !isSubmitting,
+            isSubmitting: isSubmitting,
+            onConfirm: () => context.read<RedeemCubit>().redeem(item),
+            onCancel: () => context.router.maybePop(),
           ),
         );
       },
     );
   }
+}
+
+class _RewardSummary extends StatelessWidget {
+  const _RewardSummary({required this.item});
+
+  final StoreItem item;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x120A0D12),
+          blurRadius: 8,
+          offset: Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
+          children: [
+            RewardImage(item: item, height: 155),
+            if (item.isFeatured)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: KompakColors.success,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'TERPOPULER',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: ProviderLogo(provider: item.provider, size: 42),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.title,
+                      style: const TextStyle(
+                        color: KompakColors.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.stars_rounded,
+                    color: KompakColors.warning,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${item.points}',
+                    style: const TextStyle(
+                      color: KompakColors.warning,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              if (item.description.isNotEmpty) ...[
+                const SizedBox(height: 5),
+                Text(
+                  item.description,
+                  style: const TextStyle(
+                    color: KompakColors.mutedInk,
+                    fontSize: 13,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 5),
+              Text(
+                'Stok ${item.stock}',
+                style: const TextStyle(
+                  color: KompakColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _PointsSummary extends StatelessWidget {
+  const _PointsSummary({
+    required this.label,
+    required this.points,
+    required this.color,
+  });
+
+  final String label;
+  final int points;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 78,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const Spacer(),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: NumberFormat.decimalPattern('id_ID').format(points),
+                style: const TextStyle(fontSize: 23),
+              ),
+              const TextSpan(text: ' Poin', style: TextStyle(fontSize: 11)),
+            ],
+          ),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _PickupLocation extends StatelessWidget {
+  const _PickupLocation({required this.provider});
+
+  final RewardProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final photoUrl = provider.storePhotoUrl;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE8EAEE)),
+      ),
+      child: Column(
+        children: [
+          if (photoUrl != null && photoUrl.isNotEmpty)
+            Image.network(
+              photoUrl,
+              width: double.infinity,
+              height: 112,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const _StorePhotoFallback(),
+            )
+          else
+            const _StorePhotoFallback(),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: KompakColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.storefront_outlined,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        provider.name,
+                        style: const TextStyle(
+                          color: KompakColors.ink,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        provider.address,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: KompakColors.mutedInk,
+                          fontSize: 11,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StorePhotoFallback extends StatelessWidget {
+  const _StorePhotoFallback();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+    height: 112,
+    width: double.infinity,
+    child: ColoredBox(
+      color: KompakColors.primarySurface,
+      child: Center(
+        child: Icon(
+          Icons.storefront_outlined,
+          color: KompakColors.primary,
+          size: 42,
+        ),
+      ),
+    ),
+  );
+}
+
+class _PickupMap extends StatelessWidget {
+  const _PickupMap({required this.provider});
+
+  final RewardProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final point = LatLng(provider.latitude, provider.longitude);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 160,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: FlutterMap(
+                  options: MapOptions(initialCenter: point, initialZoom: 15.5),
+                  children: [
+                    TileLayer(
+                      urlTemplate: AppConfig.mapTileUrl,
+                      userAgentPackageName: AppConfig.mapUserAgentPackageName,
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: point,
+                          width: 46,
+                          height: 46,
+                          child: const Icon(
+                            Icons.location_pin,
+                            color: KompakColors.primary,
+                            size: 44,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 12,
+              bottom: 12,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: KompakColors.success,
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  child: Icon(
+                    Icons.map_outlined,
+                    color: Colors.white,
+                    size: 21,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TermsCard extends StatelessWidget {
+  const _TermsCard({required this.item});
+
+  final StoreItem item;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: KompakColors.success,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.info_outline, color: Colors.white, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Syarat & Ketentuan',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Penukaran tidak dapat dibatalkan setelah dikonfirmasi. QR berlaku ${item.validityDays} hari dan ditunjukkan kepada ${item.provider.name}. Poin dikembalikan otomatis bila penukaran kedaluwarsa atau ditolak.',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _ConfirmationActions extends StatelessWidget {
+  const _ConfirmationActions({
+    required this.enabled,
+    required this.isSubmitting,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final bool enabled;
+  final bool isSubmitting;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      boxShadow: [
+        BoxShadow(
+          color: Color(0x120A0D12),
+          blurRadius: 8,
+          offset: Offset(0, -3),
+        ),
+      ],
+    ),
+    child: SafeArea(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              onPressed: enabled ? onConfirm : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: KompakColors.primary,
+                disabledBackgroundColor: KompakColors.primaryDisabled,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Konfirmasi Penukaran'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: TextButton(
+              onPressed: isSubmitting ? null : onCancel,
+              style: TextButton.styleFrom(
+                backgroundColor: KompakColors.errorSurface,
+                foregroundColor: KompakColors.error,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Batalkan Penukaran'),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

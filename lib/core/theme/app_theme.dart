@@ -10,7 +10,12 @@ abstract final class KompakColors {
   static const scannerGuide = Color(0xFF5182EF);
   static const success = Color(0xFF12B76A);
   static const successSurface = Color(0xFFE7F8F0);
+  static const warning = Color(0xFFF79009);
+  static const warningSurface = Color(0xFFFFF4E5);
+  static const error = Color(0xFFF04438);
+  static const errorSurface = Color(0xFFFEECEB);
   static const surface = Colors.white;
+  static const softSurface = Color(0xFFF5F7FB);
   static const ink = Color(0xFF20242C);
   static const mutedInk = Color(0xFF5F6672);
   static const outline = Color(0xFFD6DAE1);

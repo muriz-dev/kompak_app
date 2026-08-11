@@ -1,113 +1,117 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/store_data.dart';
+import 'reward_visuals.dart';
 
 class StoreItemGridCard extends StatelessWidget {
+  const StoreItemGridCard({
+    super.key,
+    required this.item,
+    required this.onRedeem,
+  });
+
   final StoreItem item;
   final VoidCallback onRedeem;
 
-  const StoreItemGridCard({super.key, required this.item, required this.onRedeem});
-
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'delete_outline':
-        return Icons.delete_outline;
-      case 'bolt':
-        return Icons.bolt;
-      default:
-        return Icons.card_giftcard;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final available = item.stock > 0;
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: const Color(0xFFE8EAEE)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image / Icon Section
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: item.itemType == ItemType.icon ? const Color(0xFFEFF6FF) : Colors.transparent,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: item.itemType == ItemType.icon
-                    ? Center(
-                        child: Icon(
-                          _getIconData(item.imageUrlOrIcon),
-                          size: 40,
-                          color: const Color(0xFF2563EB),
-                        ),
-                      )
-                    : Image.network(
-                        item.imageUrlOrIcon,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: double.infinity,
-                          color: Colors.grey.shade300,
-                          child: const Icon(Icons.image, color: Colors.grey),
-                        ),
-                      ),
-              ),
-            ),
+          RewardImage(
+            item: item,
+            height: 112,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
           ),
-          // Content Section
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ProviderLogo(
+                        provider: item.provider,
+                        size: 25,
+                        showBorder: false,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: KompakColors.ink,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.stars_rounded,
+                                  color: KompakColors.warning,
+                                  size: 13,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${item.points}',
+                                  style: const TextStyle(
+                                    color: KompakColors.warning,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.stars, color: Colors.orange, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${item.points}',
-                      style: const TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                  const Spacer(),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: available ? onRedeem : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: KompakColors.success,
+                        disabledBackgroundColor: KompakColors.outline,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                      ),
+                      child: Text(
+                        available ? 'Tukar' : 'Habis',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 32,
-                  child: ElevatedButton(
-                    onPressed: onRedeem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981), // Green
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text('Tukar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

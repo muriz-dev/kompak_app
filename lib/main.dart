@@ -32,6 +32,9 @@ class MainApp extends StatelessWidget {
       routerConfig: appRouter.config(),
       theme: AppTheme.light,
       builder: (context, child) => BlocListener<SessionCubit, SessionState>(
+        listenWhen: (previous, current) =>
+            routesForSession(current) != null &&
+            previous.runtimeType != current.runtimeType,
         listener: (context, state) {
           final routes = routesForSession(state);
           if (routes != null) appRouter.replaceAll(routes);

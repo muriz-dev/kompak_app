@@ -64,6 +64,19 @@ class SessionCubit extends Cubit<SessionState> {
     emit(SessionUnauthenticated());
   }
 
+  void updateBalance(int balance) {
+    final current = state;
+    if (current is! SessionWithUser || current.user.balance == balance) return;
+
+    final user = current.user.copyWith(balance: balance);
+    emit(switch (current) {
+      SessionActive() => SessionActive(user),
+      SessionPending() => SessionPending(user),
+      SessionRejected() => SessionRejected(user),
+      SessionBlocked() => SessionBlocked(user),
+    });
+  }
+
   void _emitUser(SessionUser user) {
     emit(switch (user.status) {
       UserStatus.active => SessionActive(user),

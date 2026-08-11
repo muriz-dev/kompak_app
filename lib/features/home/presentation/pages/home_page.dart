@@ -38,7 +38,7 @@ class HomePage extends StatelessWidget {
 
     final userSummary = UserSummary(
       name: activeUser.name,
-      points: activeUser.leaderboardPoints,
+      points: activeUser.balance,
     );
 
     return BlocProvider(

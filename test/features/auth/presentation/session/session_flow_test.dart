@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -42,10 +43,17 @@ class _MemoryTokenStore implements SessionTokenStore {
 class _TestDioModule extends DioModule {}
 
 class _SessionAdapter implements HttpClientAdapter {
-  _SessionAdapter({required this.status, this.responseStatus = 200});
+  _SessionAdapter({
+    required this.status,
+    this.responseStatus = 200,
+    this.balance = 1200,
+    this.leaderboardPoints = 90,
+  });
 
   String status;
   int responseStatus;
+  int balance;
+  int leaderboardPoints;
   String? lastAuthorization;
 
   Map<String, dynamic> get user => {
@@ -54,8 +62,8 @@ class _SessionAdapter implements HttpClientAdapter {
     'phoneNumber': '+628123456789',
     'birthDate': '1995-06-12',
     'email': 'olivia@example.com',
-    'balance': 1200,
-    'leaderboardPoints': 90,
+    'balance': balance,
+    'leaderboardPoints': leaderboardPoints,
     'status': status,
     'role': 'CITIZEN',
   };
@@ -141,6 +149,8 @@ void main() {
     required String? token,
     String status = 'PENDING',
     int responseStatus = 200,
+    int balance = 1200,
+    int leaderboardPoints = 90,
   }) async {
     tester.view.devicePixelRatio = 2;
     tester.view.physicalSize = const Size(780, 1688);
@@ -156,6 +166,8 @@ void main() {
     final adapter = _SessionAdapter(
       status: status,
       responseStatus: responseStatus,
+      balance: balance,
+      leaderboardPoints: leaderboardPoints,
     );
     final tokenStore = _MemoryTokenStore(token);
     final bus = SessionInvalidationBus();
@@ -212,8 +224,41 @@ void main() {
 
     expect(find.byType(MainPage), findsOneWidget);
     expect(find.text('Selamat Siang, Olivia Rhye!'), findsOneWidget);
-    expect(find.text('90'), findsOneWidget);
+    expect(find.text('1.200'), findsOneWidget);
     expect(find.text('Menunggu Persetujuan'), findsNothing);
+  });
+
+  testWidgets('home shows spendable balance instead of leaderboard points', (
+    tester,
+  ) async {
+    await pumpSessionApp(
+      tester,
+      token: 'active-token',
+      status: 'ACTIVE',
+      balance: 4750,
+      leaderboardPoints: 0,
+    );
+
+    expect(find.text('4.750'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
+  });
+
+  testWidgets('balance updates do not reset the active route', (tester) async {
+    final harness = await pumpSessionApp(
+      tester,
+      token: 'active-token',
+      status: 'ACTIVE',
+    );
+    unawaited(harness.router.push<void>(const NotificationRoute()));
+    await tester.pumpAndSettle();
+    expect(find.text('Notifikasi'), findsOneWidget);
+
+    harness.cubit.updateBalance(750);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notifikasi'), findsOneWidget);
+    final state = harness.cubit.state as SessionActive;
+    expect(state.user.balance, 750);
   });
 
   testWidgets('routes a pending login and stores its token', (tester) async {

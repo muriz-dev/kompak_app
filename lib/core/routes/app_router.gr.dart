@@ -673,10 +673,15 @@ class RedeemConfirmationRoute
   RedeemConfirmationRoute({
     Key? key,
     required StoreItem item,
+    required int availablePoints,
     List<PageRouteInfo>? children,
   }) : super(
          RedeemConfirmationRoute.name,
-         args: RedeemConfirmationRouteArgs(key: key, item: item),
+         args: RedeemConfirmationRouteArgs(
+           key: key,
+           item: item,
+           availablePoints: availablePoints,
+         ),
          initialChildren: children,
        );
 
@@ -686,32 +691,44 @@ class RedeemConfirmationRoute
     name,
     builder: (data) {
       final args = data.argsAs<RedeemConfirmationRouteArgs>();
-      return RedeemConfirmationPage(key: args.key, item: args.item);
+      return RedeemConfirmationPage(
+        key: args.key,
+        item: args.item,
+        availablePoints: args.availablePoints,
+      );
     },
   );
 }
 
 class RedeemConfirmationRouteArgs {
-  const RedeemConfirmationRouteArgs({this.key, required this.item});
+  const RedeemConfirmationRouteArgs({
+    this.key,
+    required this.item,
+    required this.availablePoints,
+  });
 
   final Key? key;
 
   final StoreItem item;
 
+  final int availablePoints;
+
   @override
   String toString() {
-    return 'RedeemConfirmationRouteArgs{key: $key, item: $item}';
+    return 'RedeemConfirmationRouteArgs{key: $key, item: $item, availablePoints: $availablePoints}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! RedeemConfirmationRouteArgs) return false;
-    return key == other.key && item == other.item;
+    return key == other.key &&
+        item == other.item &&
+        availablePoints == other.availablePoints;
   }
 
   @override
-  int get hashCode => key.hashCode ^ item.hashCode;
+  int get hashCode => key.hashCode ^ item.hashCode ^ availablePoints.hashCode;
 }
 
 /// generated route for

@@ -61,6 +61,28 @@ class SessionUser extends Equatable {
   final UserStatus status;
   final UserRole role;
 
+  SessionUser copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phoneNumber,
+    String? birthDate,
+    int? balance,
+    int? leaderboardPoints,
+    UserStatus? status,
+    UserRole? role,
+  }) => SessionUser(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    email: email ?? this.email,
+    phoneNumber: phoneNumber ?? this.phoneNumber,
+    birthDate: birthDate ?? this.birthDate,
+    balance: balance ?? this.balance,
+    leaderboardPoints: leaderboardPoints ?? this.leaderboardPoints,
+    status: status ?? this.status,
+    role: role ?? this.role,
+  );
+
   @override
   List<Object?> get props => [
     id,

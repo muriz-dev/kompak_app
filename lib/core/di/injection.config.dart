@@ -77,6 +77,15 @@ import '../../features/events/presentation/bloc/activity_detail_cubit.dart'
 import '../../features/home/presentation/bloc/home_cubit.dart' as _i816;
 import '../../features/leaderboard/presentation/bloc/leaderboard_cubit.dart'
     as _i100;
+import '../../features/store/data/datasources/point_shop_remote_data_source.dart'
+    as _i971;
+import '../../features/store/data/repositories/point_shop_repository_impl.dart'
+    as _i288;
+import '../../features/store/domain/repositories/point_shop_repository.dart'
+    as _i775;
+import '../../features/store/presentation/bloc/point_history_cubit.dart'
+    as _i879;
+import '../../features/store/presentation/bloc/redeem_cubit.dart' as _i225;
 import '../../features/store/presentation/bloc/store_cubit.dart' as _i487;
 import '../auth/session_invalidation_bus.dart' as _i875;
 import '../auth/session_token_store.dart' as _i1016;
@@ -102,7 +111,6 @@ extension GetItInjectableX on _i174.GetIt {
       preResolve: true,
     );
     gh.factory<_i100.LeaderboardCubit>(() => _i100.LeaderboardCubit());
-    gh.factory<_i487.StoreCubit>(() => _i487.StoreCubit());
     gh.lazySingleton<_i875.SessionInvalidationBus>(
       () => _i875.SessionInvalidationBus(),
       dispose: (i) => i.dispose(),
@@ -145,6 +153,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i107.AuthRemoteDataSource>(),
         gh<_i1016.SessionTokenStore>(),
       ),
+    );
+    gh.lazySingleton<_i971.PointShopRemoteDataSource>(
+      () => _i971.PointShopRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i188.LoginUseCase>(
       () => _i188.LoginUseCase(gh<_i787.AuthRepository>()),
@@ -193,6 +204,10 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i592.AdminResidentsRemoteDataSource>(),
       ),
     );
+    gh.lazySingleton<_i775.PointShopRepository>(
+      () =>
+          _i288.PointShopRepositoryImpl(gh<_i971.PointShopRemoteDataSource>()),
+    );
     gh.factory<_i330.AdminAnnouncementsCubit>(
       () => _i330.AdminAnnouncementsCubit(gh<_i924.AnnouncementsRepository>()),
     );
@@ -215,6 +230,15 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i820.CommunityEventsRepository>(),
         gh<_i924.AnnouncementsRepository>(),
       ),
+    );
+    gh.factory<_i879.PointHistoryCubit>(
+      () => _i879.PointHistoryCubit(gh<_i775.PointShopRepository>()),
+    );
+    gh.factory<_i225.RedeemCubit>(
+      () => _i225.RedeemCubit(gh<_i775.PointShopRepository>()),
+    );
+    gh.factory<_i487.StoreCubit>(
+      () => _i487.StoreCubit(gh<_i775.PointShopRepository>()),
     );
     gh.factory<_i799.AdminEventDetailCubit>(
       () => _i799.AdminEventDetailCubit(gh<_i78.AdminEventsRepository>()),
