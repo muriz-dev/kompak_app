@@ -57,6 +57,8 @@ class AnnouncementFormCubit extends Cubit<AnnouncementFormState> {
     }
   }
 
+  void reset() => emit(AnnouncementFormInitial());
+
   bool get _busy =>
       state is AnnouncementFormSubmitting || state is AnnouncementFormDeleting;
 

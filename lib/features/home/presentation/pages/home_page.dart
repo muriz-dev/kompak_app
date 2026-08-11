@@ -235,15 +235,18 @@ class HomeDashboardView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ...announcements.map(
-              (announcement) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: AnnouncementCard(
-                  announcement: announcement,
-                  onTap: onAnnouncementTap,
+            if (announcements.isEmpty)
+              const _EmptyAnnouncements()
+            else
+              ...announcements.map(
+                (announcement) => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: AnnouncementCard(
+                    announcement: announcement,
+                    onTap: onAnnouncementTap,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -275,6 +278,73 @@ class _EmptyActivities extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyAnnouncements extends StatelessWidget {
+  const _EmptyAnnouncements();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label:
+          'Belum ada pengumuman terbaru. Informasi dari pengurus RT akan muncul di sini.',
+      child: Container(
+        key: const ValueKey('home-empty-announcements'),
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F7FB),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Row(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0xFFE7EDFC),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              child: SizedBox(
+                width: 42,
+                height: 42,
+                child: Icon(
+                  Icons.campaign_outlined,
+                  color: _homeBlue,
+                  size: 24,
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Belum ada pengumuman terbaru',
+                    style: TextStyle(
+                      color: _homeInk,
+                      fontSize: 14,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    'Informasi dari pengurus RT akan muncul di sini.',
+                    style: TextStyle(
+                      color: _homeMuted,
+                      fontSize: 13,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

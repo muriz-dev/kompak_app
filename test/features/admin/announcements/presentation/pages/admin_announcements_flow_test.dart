@@ -273,7 +273,6 @@ void main() {
       adapter.requests.where((request) => request.method == 'GET'),
       hasLength(2),
     );
-    expect(find.text('Pengumuman berhasil dipublikasikan.'), findsOneWidget);
   });
 
   testWidgets('shows the empty Figma form and creates via POST', (
@@ -306,7 +305,58 @@ void main() {
       'title': 'Kerja Bakti Blok B',
       'description': 'Warga diminta membawa alat kebersihan masing-masing.',
     });
+    expect(find.text('Pengumuman Berhasil Dipublikasikan!'), findsOneWidget);
+    expect(find.text('Lihat Daftar'), findsOneWidget);
+    expect(find.text('Buat Pengumuman Lagi'), findsOneWidget);
+    expect(completed, isFalse);
+
+    await tester.tap(
+      find.byKey(const ValueKey('announcement-success-view-list')),
+    );
+    await tester.pumpAndSettle();
+
     expect(completed, isTrue);
+  });
+
+  testWidgets('resets the form from the create success modal', (tester) async {
+    final adapter = await pumpForm(tester);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('announcement-title-field')),
+      'Kerja Bakti Blok B',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('announcement-description-field')),
+      'Warga diminta membawa alat kebersihan masing-masing.',
+    );
+    await tester.tap(find.byKey(const ValueKey('submit-announcement')));
+    await tester.pumpAndSettle();
+
+    expect(adapter.requests, hasLength(1));
+    await tester.tap(
+      find.byKey(const ValueKey('announcement-success-create-another')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TextFormField>(
+            find.byKey(const ValueKey('announcement-title-field')),
+          )
+          .controller
+          ?.text,
+      isEmpty,
+    );
+    expect(
+      tester
+          .widget<TextFormField>(
+            find.byKey(const ValueKey('announcement-description-field')),
+          )
+          .controller
+          ?.text,
+      isEmpty,
+    );
+    expect(find.text('Pengumuman Berhasil Dipublikasikan!'), findsNothing);
   });
 
   testWidgets('prefills, updates, and deletes an announcement', (tester) async {

@@ -277,7 +277,6 @@ class _AdminAnnouncementsViewState extends State<AdminAnnouncementsView> {
     final changed = await widget.onCreate();
     if (changed != true || !mounted) return;
     await context.read<AdminAnnouncementsCubit>().loadAnnouncements();
-    if (mounted) _showMessage('Pengumuman berhasil dipublikasikan.');
   }
 
   Future<void> _openEdit(CommunityAnnouncement announcement) async {

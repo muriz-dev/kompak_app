@@ -7,6 +7,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../announcements/domain/entities/community_announcement.dart';
 import '../bloc/announcement_form_cubit.dart';
 import '../bloc/announcement_form_state.dart';
+import '../widgets/announcement_success_dialog.dart';
 
 @RoutePage()
 class AnnouncementFormPage extends StatelessWidget {
@@ -21,7 +22,7 @@ class AnnouncementFormPage extends StatelessWidget {
       child: AnnouncementFormView(
         announcement: announcement,
         onBack: () => context.router.maybePop(),
-        onComplete: () => context.router.maybePop(true),
+        onComplete: () => Navigator.of(context).pop(true),
       ),
     );
   }
@@ -53,6 +54,7 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  bool _successDialogVisible = false;
 
   bool get _editing => widget.announcement != null;
 
@@ -78,7 +80,11 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
     return BlocConsumer<AnnouncementFormCubit, AnnouncementFormState>(
       listener: (context, state) {
         if (state is AnnouncementFormSuccess) {
-          widget.onComplete();
+          if (state.deleted || _editing) {
+            widget.onComplete();
+          } else {
+            _showCreateSuccessDialog();
+          }
         } else if (state is AnnouncementFormFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
@@ -86,11 +92,12 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
         }
       },
       builder: (context, state) {
-        final busy =
-            state is AnnouncementFormSubmitting ||
-            state is AnnouncementFormDeleting;
+        final submitting = state is AnnouncementFormSubmitting;
+        final deleting = state is AnnouncementFormDeleting;
+        final busy = submitting || deleting;
+        final locked = busy || state is AnnouncementFormSuccess;
         return PopScope(
-          canPop: !busy,
+          canPop: !locked,
           child: Scaffold(
             backgroundColor: const Color(0xFFFEFFFF),
             body: SafeArea(
@@ -100,7 +107,7 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
                     title: _editing
                         ? 'Detail Pengumuman'
                         : 'Buat Pengumuman Baru',
-                    onBack: busy ? null : widget.onBack,
+                    onBack: locked ? null : widget.onBack,
                   ),
                   Expanded(
                     child: Form(
@@ -126,7 +133,7 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
                                     'announcement-title-field',
                                   ),
                                   controller: _titleController,
-                                  enabled: !busy,
+                                  enabled: !locked,
                                   textCapitalization:
                                       TextCapitalization.sentences,
                                   textInputAction: TextInputAction.next,
@@ -155,7 +162,7 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
                                     'announcement-description-field',
                                   ),
                                   controller: _descriptionController,
-                                  enabled: !busy,
+                                  enabled: !locked,
                                   minLines: 5,
                                   maxLines: 9,
                                   textCapitalization:
@@ -186,8 +193,9 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
                   ),
                   _ActionBar(
                     editing: _editing,
-                    busy: busy,
-                    deleting: state is AnnouncementFormDeleting,
+                    locked: locked,
+                    submitting: submitting,
+                    deleting: deleting,
                     onSubmit: _submit,
                     onDelete: _editing ? _confirmDelete : null,
                   ),
@@ -242,6 +250,39 @@ class _AnnouncementFormViewState extends State<AnnouncementFormView> {
         description: description,
       );
     }
+  }
+
+  Future<void> _showCreateSuccessDialog() async {
+    if (_successDialogVisible || !mounted) return;
+    _successDialogVisible = true;
+    final action = await showDialog<AnnouncementSuccessAction>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: const Color(0xBF24282E),
+      builder: (context) => const AnnouncementSuccessDialog(),
+    );
+    _successDialogVisible = false;
+    if (!mounted) return;
+
+    switch (action) {
+      case AnnouncementSuccessAction.viewList:
+        widget.onComplete();
+        break;
+      case AnnouncementSuccessAction.createAnother:
+        _resetForm();
+        context.read<AnnouncementFormCubit>().reset();
+        break;
+      case null:
+        break;
+    }
+  }
+
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    _titleController.clear();
+    _descriptionController.clear();
+    FocusScope.of(context).unfocus();
+    setState(() {});
   }
 
   Future<void> _confirmDelete() async {
@@ -349,14 +390,16 @@ class _FieldLabel extends StatelessWidget {
 class _ActionBar extends StatelessWidget {
   const _ActionBar({
     required this.editing,
-    required this.busy,
+    required this.locked,
+    required this.submitting,
     required this.deleting,
     required this.onSubmit,
     required this.onDelete,
   });
 
   final bool editing;
-  final bool busy;
+  final bool locked;
+  final bool submitting;
   final bool deleting;
   final VoidCallback onSubmit;
   final VoidCallback? onDelete;
@@ -375,7 +418,7 @@ class _ActionBar extends StatelessWidget {
               height: 42,
               child: FilledButton(
                 key: const ValueKey('submit-announcement'),
-                onPressed: busy ? null : onSubmit,
+                onPressed: locked ? null : onSubmit,
                 style: FilledButton.styleFrom(
                   backgroundColor: KompakColors.primary,
                   foregroundColor: Colors.white,
@@ -383,7 +426,7 @@ class _ActionBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: busy && !deleting
+                child: submitting
                     ? const SizedBox.square(
                         dimension: 20,
                         child: CircularProgressIndicator(
@@ -404,7 +447,7 @@ class _ActionBar extends StatelessWidget {
                 height: 42,
                 child: TextButton(
                   key: const ValueKey('delete-announcement'),
-                  onPressed: busy ? null : onDelete,
+                  onPressed: locked ? null : onDelete,
                   style: TextButton.styleFrom(
                     foregroundColor: _AnnouncementFormViewState._error,
                     backgroundColor: const Color(0xFFFEECEB),

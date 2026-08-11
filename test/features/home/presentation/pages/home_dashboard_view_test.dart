@@ -25,6 +25,8 @@ void main() {
   ];
 
   Widget buildDashboard({
+    List<UpcomingActivity>? dashboardActivities,
+    List<Announcement>? dashboardAnnouncements,
     VoidCallback? onNotificationTap,
     VoidCallback? onProfileTap,
     VoidCallback? onRedeemTap,
@@ -37,8 +39,8 @@ void main() {
       home: Scaffold(
         body: HomeDashboardView(
           userSummary: userSummary,
-          activities: activities,
-          announcements: announcements,
+          activities: dashboardActivities ?? activities,
+          announcements: dashboardAnnouncements ?? announcements,
           onNotificationTap: onNotificationTap ?? () {},
           onProfileTap: onProfileTap ?? () {},
           onRedeemTap: onRedeemTap ?? () {},
@@ -143,5 +145,25 @@ void main() {
 
     expect(find.text('Selamat Siang, Olivia Rhye!'), findsOneWidget);
     expect(find.text('90'), findsOneWidget);
+  });
+
+  testWidgets('shows a useful empty state when there are no announcements', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildDashboard(dashboardAnnouncements: const []));
+
+    expect(
+      find.byKey(const ValueKey('home-empty-announcements')),
+      findsOneWidget,
+    );
+    expect(find.text('Belum ada pengumuman terbaru'), findsOneWidget);
+    expect(
+      find.text('Informasi dari pengurus RT akan muncul di sini.'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('home-announcement-announcement-1')),
+      findsNothing,
+    );
   });
 }
