@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kompak_app/features/announcements/domain/entities/community_announcement.dart';
+import 'package:kompak_app/features/announcements/domain/repositories/announcements_repository.dart';
 import 'package:kompak_app/features/attendance/presentation/bloc/attendance_cubit.dart';
 import 'package:kompak_app/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:kompak_app/features/attendance/domain/entities/attendance_check_in.dart';
@@ -36,7 +38,7 @@ void main() {
   });
 
   test('home maps upcoming API events into dashboard activities', () async {
-    final cubit = HomeCubit(repository);
+    final cubit = HomeCubit(repository, _AnnouncementsRepository());
     addTearDown(cubit.close);
 
     await cubit.loadHomeData();
@@ -44,6 +46,7 @@ void main() {
     final state = cubit.state as HomeLoaded;
     expect(state.upcomingActivities.single.id, 'upcoming-1');
     expect(state.upcomingActivities.single.title, 'Rapat Warga');
+    expect(state.announcements.single.title, 'Jadwal Ronda Diperbarui');
   });
 
   test(
@@ -129,4 +132,35 @@ class _EventsRepository implements CommunityEventsRepository {
   @override
   Future<List<CommunityEvent>> getEvents(EventTimeframe timeframe) async =>
       timeframe == EventTimeframe.upcoming ? upcoming : ongoing;
+}
+
+class _AnnouncementsRepository implements AnnouncementsRepository {
+  @override
+  Future<List<CommunityAnnouncement>> getAnnouncements() async => [
+    CommunityAnnouncement(
+      id: 'announcement-1',
+      createdBy: 'admin-1',
+      title: 'Jadwal Ronda Diperbarui',
+      description: 'Jadwal ronda malam diperbarui untuk pekan ini.',
+      createdAt: DateTime(2026, 8, 10),
+      updatedAt: DateTime(2026, 8, 10),
+    ),
+  ];
+
+  @override
+  Future<void> createAnnouncement({
+    required String title,
+    required String description,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> deleteAnnouncement(String announcementId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<CommunityAnnouncement> updateAnnouncement({
+    required String announcementId,
+    required String title,
+    required String description,
+  }) => throw UnimplementedError();
 }

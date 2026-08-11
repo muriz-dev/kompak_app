@@ -15,6 +15,10 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
+import '../../features/admin/announcements/presentation/bloc/admin_announcements_cubit.dart'
+    as _i330;
+import '../../features/admin/announcements/presentation/bloc/announcement_form_cubit.dart'
+    as _i940;
 import '../../features/admin/events/data/datasources/admin_events_remote_data_source.dart'
     as _i461;
 import '../../features/admin/events/data/repositories/admin_events_repository_impl.dart'
@@ -37,6 +41,12 @@ import '../../features/admin/residents/domain/repositories/admin_residents_repos
     as _i943;
 import '../../features/admin/residents/presentation/bloc/admin_residents_cubit.dart'
     as _i938;
+import '../../features/announcements/data/datasources/announcements_remote_data_source.dart'
+    as _i161;
+import '../../features/announcements/data/repositories/announcements_repository_impl.dart'
+    as _i516;
+import '../../features/announcements/domain/repositories/announcements_repository.dart'
+    as _i924;
 import '../../features/attendance/data/datasources/attendance_remote_data_source.dart'
     as _i680;
 import '../../features/attendance/data/repositories/attendance_repository_impl.dart'
@@ -118,6 +128,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i461.AdminEventsRemoteDataSource>(
       () => _i461.AdminEventsRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i161.AnnouncementsRemoteDataSource>(
+      () => _i161.AnnouncementsRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i107.AuthRemoteDataSource>(
       () => _i107.AuthRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
@@ -161,8 +174,10 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i875.SessionInvalidationBus>(),
       ),
     );
-    gh.factory<_i816.HomeCubit>(
-      () => _i816.HomeCubit(gh<_i820.CommunityEventsRepository>()),
+    gh.lazySingleton<_i924.AnnouncementsRepository>(
+      () => _i516.AnnouncementsRepositoryImpl(
+        gh<_i161.AnnouncementsRemoteDataSource>(),
+      ),
     );
     gh.factory<_i886.ActivityDetailCubit>(
       () => _i886.ActivityDetailCubit(gh<_i820.CommunityEventsRepository>()),
@@ -178,6 +193,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i592.AdminResidentsRemoteDataSource>(),
       ),
     );
+    gh.factory<_i330.AdminAnnouncementsCubit>(
+      () => _i330.AdminAnnouncementsCubit(gh<_i924.AnnouncementsRepository>()),
+    );
+    gh.factory<_i940.AnnouncementFormCubit>(
+      () => _i940.AnnouncementFormCubit(gh<_i924.AnnouncementsRepository>()),
+    );
     gh.lazySingleton<_i78.AdminEventsRepository>(
       () => _i99.AdminEventsRepositoryImpl(
         gh<_i461.AdminEventsRemoteDataSource>(),
@@ -188,6 +209,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i629.AppRouter>(
       () => routerModule.appRouter(gh<_i371.SessionCubit>()),
+    );
+    gh.factory<_i816.HomeCubit>(
+      () => _i816.HomeCubit(
+        gh<_i820.CommunityEventsRepository>(),
+        gh<_i924.AnnouncementsRepository>(),
+      ),
     );
     gh.factory<_i799.AdminEventDetailCubit>(
       () => _i799.AdminEventDetailCubit(gh<_i78.AdminEventsRepository>()),

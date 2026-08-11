@@ -352,6 +352,10 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
       context.router.push(const AdminEventsRoute());
       return;
     }
+    if (action == _ManagementAction.announcements) {
+      context.router.push(const AdminAnnouncementsRoute());
+      return;
+    }
 
     final label = switch (action) {
       _ManagementAction.addResident => 'Tambah warga',

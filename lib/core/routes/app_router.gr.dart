@@ -63,6 +63,22 @@ class ActivityDetailRouteArgs {
 }
 
 /// generated route for
+/// [AdminAnnouncementsPage]
+class AdminAnnouncementsRoute extends PageRouteInfo<void> {
+  const AdminAnnouncementsRoute({List<PageRouteInfo>? children})
+    : super(AdminAnnouncementsRoute.name, initialChildren: children);
+
+  static const String name = 'AdminAnnouncementsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const AdminAnnouncementsPage();
+    },
+  );
+}
+
+/// generated route for
 /// [AdminEventDetailPage]
 class AdminEventDetailRoute extends PageRouteInfo<AdminEventDetailRouteArgs> {
   AdminEventDetailRoute({
@@ -144,6 +160,58 @@ class AdminResidentsRoute extends PageRouteInfo<void> {
       return const AdminResidentsPage();
     },
   );
+}
+
+/// generated route for
+/// [AnnouncementFormPage]
+class AnnouncementFormRoute extends PageRouteInfo<AnnouncementFormRouteArgs> {
+  AnnouncementFormRoute({
+    CommunityAnnouncement? announcement,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AnnouncementFormRoute.name,
+         args: AnnouncementFormRouteArgs(announcement: announcement, key: key),
+         initialChildren: children,
+       );
+
+  static const String name = 'AnnouncementFormRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<AnnouncementFormRouteArgs>(
+        orElse: () => const AnnouncementFormRouteArgs(),
+      );
+      return AnnouncementFormPage(
+        announcement: args.announcement,
+        key: args.key,
+      );
+    },
+  );
+}
+
+class AnnouncementFormRouteArgs {
+  const AnnouncementFormRouteArgs({this.announcement, this.key});
+
+  final CommunityAnnouncement? announcement;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'AnnouncementFormRouteArgs{announcement: $announcement, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AnnouncementFormRouteArgs) return false;
+    return announcement == other.announcement && key == other.key;
+  }
+
+  @override
+  int get hashCode => announcement.hashCode ^ key.hashCode;
 }
 
 /// generated route for

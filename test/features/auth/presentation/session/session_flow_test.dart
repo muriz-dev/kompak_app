@@ -11,6 +11,8 @@ import 'package:kompak_app/core/di/injection.dart';
 import 'package:kompak_app/core/network/dio_module.dart';
 import 'package:kompak_app/core/routes/app_router.dart';
 import 'package:kompak_app/core/routes/main_page.dart';
+import 'package:kompak_app/features/announcements/domain/entities/community_announcement.dart';
+import 'package:kompak_app/features/announcements/domain/repositories/announcements_repository.dart';
 import 'package:kompak_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:kompak_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:kompak_app/features/auth/domain/entities/session_user.dart';
@@ -146,7 +148,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await getIt.reset();
-    getIt.registerFactory<HomeCubit>(() => HomeCubit(_EmptyEventsRepository()));
+    getIt.registerFactory<HomeCubit>(
+      () =>
+          HomeCubit(_EmptyEventsRepository(), _EmptyAnnouncementsRepository()),
+    );
 
     final adapter = _SessionAdapter(
       status: status,
@@ -260,4 +265,26 @@ class _EmptyEventsRepository implements CommunityEventsRepository {
 
   @override
   Future<List<CommunityEvent>> getEvents(EventTimeframe timeframe) async => [];
+}
+
+class _EmptyAnnouncementsRepository implements AnnouncementsRepository {
+  @override
+  Future<List<CommunityAnnouncement>> getAnnouncements() async => [];
+
+  @override
+  Future<void> createAnnouncement({
+    required String title,
+    required String description,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> deleteAnnouncement(String announcementId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<CommunityAnnouncement> updateAnnouncement({
+    required String announcementId,
+    required String title,
+    required String description,
+  }) => throw UnimplementedError();
 }

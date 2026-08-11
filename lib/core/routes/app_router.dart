@@ -2,6 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/admin/residents/presentation/pages/admin_residents_page.dart';
+import '../../features/announcements/domain/entities/community_announcement.dart';
+import '../../features/admin/announcements/presentation/pages/admin_announcements_page.dart';
+import '../../features/admin/announcements/presentation/pages/announcement_form_page.dart';
 import '../../features/admin/events/presentation/pages/admin_events_page.dart';
 import '../../features/admin/events/presentation/pages/admin_event_detail_page.dart';
 import '../../features/admin/events/presentation/pages/create_event_page.dart';
@@ -77,6 +80,16 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: AdminEventsRoute.page,
       path: '/admin/events',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminAnnouncementsRoute.page,
+      path: '/admin/announcements',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AnnouncementFormRoute.page,
+      path: '/admin/announcements/form',
       guards: [_adminSessionGuard],
     ),
     AutoRoute(
