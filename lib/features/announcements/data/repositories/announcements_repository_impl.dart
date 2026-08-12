@@ -15,6 +15,10 @@ class AnnouncementsRepositoryImpl implements AnnouncementsRepository {
       _remoteDataSource.getAnnouncements();
 
   @override
+  Future<CommunityAnnouncement> getAnnouncement(String announcementId) =>
+      _remoteDataSource.getAnnouncement(announcementId);
+
+  @override
   Future<void> createAnnouncement({
     required String title,
     required String description,

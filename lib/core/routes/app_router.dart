@@ -2,6 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/admin/residents/presentation/pages/admin_residents_page.dart';
+import '../../features/admin/residents/presentation/pages/admin_resident_detail_page.dart';
+import '../../features/admin/residents/presentation/pages/admin_resident_form_page.dart';
+import '../../features/admin/residents/domain/entities/resident.dart';
 import '../../features/admin/providers/presentation/pages/admin_provider_detail_page.dart';
 import '../../features/admin/providers/presentation/pages/admin_providers_page.dart';
 import '../../features/admin/providers/presentation/pages/admin_point_shop_page.dart';
@@ -10,6 +13,7 @@ import '../../features/admin/rewards/presentation/pages/admin_leaderboard_reward
 import '../../features/admin/rewards/presentation/pages/admin_leaderboard_reward_picker_page.dart';
 import '../../features/admin/rewards/presentation/pages/admin_leaderboard_rewards_page.dart';
 import '../../features/announcements/domain/entities/community_announcement.dart';
+import '../../features/announcements/presentation/pages/announcement_detail_page.dart';
 import '../../features/admin/announcements/presentation/pages/admin_announcements_page.dart';
 import '../../features/admin/announcements/presentation/pages/announcement_form_page.dart';
 import '../../features/admin/events/presentation/pages/admin_events_page.dart';
@@ -74,6 +78,11 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(page: NotificationRoute.page, guards: [_activeSessionGuard]),
     AutoRoute(
+      page: AnnouncementDetailRoute.page,
+      path: '/announcements/:announcementId',
+      guards: [_activeSessionGuard],
+    ),
+    AutoRoute(
       page: ActivityDetailRoute.page,
       path: '/events/:eventId',
       guards: [_activeSessionGuard],
@@ -86,6 +95,16 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: AdminResidentsRoute.page,
       path: '/admin/residents',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminResidentFormRoute.page,
+      path: '/admin/residents/create',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminResidentDetailRoute.page,
+      path: '/admin/residents/:residentId',
       guards: [_adminSessionGuard],
     ),
     AutoRoute(

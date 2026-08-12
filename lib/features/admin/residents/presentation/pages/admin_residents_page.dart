@@ -212,6 +212,7 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
                             child: ResidentCard(
                               resident: resident,
                               updating: updatingIds.contains(resident.id),
+                              onTap: () => _openResident(resident),
                               onApprove: () => _confirmStatusChange(
                                 resident,
                                 ResidentStatus.active,
@@ -348,6 +349,10 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
   }
 
   void _handleManagementAction(_ManagementAction action) {
+    if (action == _ManagementAction.addResident) {
+      _openCreateResident();
+      return;
+    }
     if (action == _ManagementAction.events) {
       context.router.push(const AdminEventsRoute());
       return;
@@ -378,6 +383,23 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
       _ManagementAction.rewards => 'Manajemen reward',
     };
     _showMessage('$label belum tersedia.');
+  }
+
+  Future<void> _openCreateResident() async {
+    final created = await context.router.push<bool>(AdminResidentFormRoute());
+    if (created == true && mounted) {
+      await context.read<AdminResidentsCubit>().loadResidents();
+      if (mounted) _showMessage('Warga berhasil ditambahkan.');
+    }
+  }
+
+  Future<void> _openResident(Resident resident) async {
+    await context.router.push<void>(
+      AdminResidentDetailRoute(residentId: resident.id),
+    );
+    if (mounted) {
+      await context.read<AdminResidentsCubit>().loadResidents();
+    }
   }
 
   Future<void> _showAdminProfileMenu() {

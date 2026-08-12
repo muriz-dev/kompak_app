@@ -317,6 +317,10 @@ class _EmptyAnnouncementsRepository implements AnnouncementsRepository {
   Future<List<CommunityAnnouncement>> getAnnouncements() async => [];
 
   @override
+  Future<CommunityAnnouncement> getAnnouncement(String announcementId) =>
+      throw UnimplementedError();
+
+  @override
   Future<void> createAnnouncement({
     required String title,
     required String description,

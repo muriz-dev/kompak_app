@@ -3,6 +3,8 @@ import '../entities/community_announcement.dart';
 abstract class AnnouncementsRepository {
   Future<List<CommunityAnnouncement>> getAnnouncements();
 
+  Future<CommunityAnnouncement> getAnnouncement(String announcementId);
+
   Future<void> createAnnouncement({
     required String title,
     required String description,

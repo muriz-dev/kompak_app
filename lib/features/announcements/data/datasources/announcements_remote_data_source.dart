@@ -6,6 +6,8 @@ import '../../domain/entities/community_announcement.dart';
 abstract class AnnouncementsRemoteDataSource {
   Future<List<CommunityAnnouncement>> getAnnouncements();
 
+  Future<CommunityAnnouncement> getAnnouncement(String announcementId);
+
   Future<void> createAnnouncement({
     required String title,
     required String description,
@@ -46,6 +48,27 @@ class AnnouncementsRemoteDataSourceImpl
     } on DioException catch (error) {
       throw Exception(
         _message(error, fallback: 'Gagal memuat daftar pengumuman.'),
+      );
+    }
+  }
+
+  @override
+  Future<CommunityAnnouncement> getAnnouncement(String announcementId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/announcements/$announcementId',
+      );
+      final data = response.data;
+      if (data == null || data['success'] != true || data['data'] is! Map) {
+        throw const FormatException('Invalid announcement detail response');
+      }
+
+      return CommunityAnnouncement.fromJson(
+        Map<String, dynamic>.from(data['data'] as Map),
+      );
+    } on DioException catch (error) {
+      throw Exception(
+        _message(error, fallback: 'Gagal memuat detail pengumuman.'),
       );
     }
   }

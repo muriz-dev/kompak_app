@@ -136,6 +136,10 @@ class _EventsRepository implements CommunityEventsRepository {
 
 class _AnnouncementsRepository implements AnnouncementsRepository {
   @override
+  Future<CommunityAnnouncement> getAnnouncement(String announcementId) =>
+      throw UnimplementedError();
+
+  @override
   Future<List<CommunityAnnouncement>> getAnnouncements() async => [
     CommunityAnnouncement(
       id: 'announcement-1',

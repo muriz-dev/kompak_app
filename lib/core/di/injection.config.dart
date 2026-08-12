@@ -57,6 +57,10 @@ import '../../features/admin/residents/data/repositories/admin_residents_reposit
     as _i767;
 import '../../features/admin/residents/domain/repositories/admin_residents_repository.dart'
     as _i943;
+import '../../features/admin/residents/presentation/bloc/admin_resident_detail_cubit.dart'
+    as _i691;
+import '../../features/admin/residents/presentation/bloc/admin_resident_form_cubit.dart'
+    as _i659;
 import '../../features/admin/residents/presentation/bloc/admin_residents_cubit.dart'
     as _i938;
 import '../../features/admin/rewards/data/datasources/admin_leaderboard_rewards_remote_data_source.dart'
@@ -75,6 +79,8 @@ import '../../features/announcements/data/repositories/announcements_repository_
     as _i516;
 import '../../features/announcements/domain/repositories/announcements_repository.dart'
     as _i924;
+import '../../features/announcements/presentation/bloc/announcement_detail_cubit.dart'
+    as _i158;
 import '../../features/attendance/data/datasources/attendance_remote_data_source.dart'
     as _i680;
 import '../../features/attendance/data/repositories/attendance_repository_impl.dart'
@@ -311,6 +317,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i940.AnnouncementFormCubit>(
       () => _i940.AnnouncementFormCubit(gh<_i924.AnnouncementsRepository>()),
     );
+    gh.factory<_i158.AnnouncementDetailCubit>(
+      () => _i158.AnnouncementDetailCubit(gh<_i924.AnnouncementsRepository>()),
+    );
     gh.lazySingleton<_i1000.AdminPointShopRepository>(
       () => _i467.AdminPointShopRepositoryImpl(
         gh<_i306.AdminPointShopRemoteDataSource>(),
@@ -326,6 +335,13 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i99.AdminEventsRepositoryImpl(
         gh<_i461.AdminEventsRemoteDataSource>(),
       ),
+    );
+    gh.factory<_i691.AdminResidentDetailCubit>(
+      () =>
+          _i691.AdminResidentDetailCubit(gh<_i943.AdminResidentsRepository>()),
+    );
+    gh.factory<_i659.AdminResidentFormCubit>(
+      () => _i659.AdminResidentFormCubit(gh<_i943.AdminResidentsRepository>()),
     );
     gh.factory<_i938.AdminResidentsCubit>(
       () => _i938.AdminResidentsCubit(gh<_i943.AdminResidentsRepository>()),

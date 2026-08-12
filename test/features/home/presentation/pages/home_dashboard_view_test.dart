@@ -33,7 +33,7 @@ void main() {
     VoidCallback? onViewAllActivities,
     ValueChanged<UpcomingActivity>? onActivityReminder,
     ValueChanged<UpcomingActivity>? onActivityTap,
-    VoidCallback? onAnnouncementTap,
+    ValueChanged<Announcement>? onAnnouncementTap,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -47,7 +47,7 @@ void main() {
           onViewAllActivities: onViewAllActivities ?? () {},
           onActivityReminder: onActivityReminder ?? (_) {},
           onActivityTap: onActivityTap ?? (_) {},
-          onAnnouncementTap: onAnnouncementTap ?? () {},
+          onAnnouncementTap: onAnnouncementTap ?? (_) {},
         ),
       ),
     );
@@ -75,7 +75,7 @@ void main() {
     var viewAllTapped = false;
     UpcomingActivity? remindedActivity;
     UpcomingActivity? openedActivity;
-    var announcementTapped = false;
+    Announcement? openedAnnouncement;
 
     await tester.pumpWidget(
       buildDashboard(
@@ -85,7 +85,7 @@ void main() {
         onViewAllActivities: () => viewAllTapped = true,
         onActivityReminder: (activity) => remindedActivity = activity,
         onActivityTap: (activity) => openedActivity = activity,
-        onAnnouncementTap: () => announcementTapped = true,
+        onAnnouncementTap: (announcement) => openedAnnouncement = announcement,
       ),
     );
 
@@ -132,7 +132,7 @@ void main() {
     expect(viewAllTapped, isTrue);
     expect(remindedActivity, same(activities.first));
     expect(openedActivity, same(activities.first));
-    expect(announcementTapped, isTrue);
+    expect(openedAnnouncement, same(announcements.first));
   });
 
   testWidgets('fits the dashboard on a narrow phone', (tester) async {

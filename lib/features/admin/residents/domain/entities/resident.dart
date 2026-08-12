@@ -77,16 +77,25 @@ class Resident extends Equatable {
       ResidentAvatarTone.values[id.hashCode.abs() %
           ResidentAvatarTone.values.length];
 
-  Resident copyWith({ResidentStatus? status}) => Resident(
+  Resident copyWith({
+    String? name,
+    String? phoneNumber,
+    String? birthDate,
+    String? email,
+    int? points,
+    int? leaderboardPoints,
+    ResidentStatus? status,
+    ResidentRole? role,
+  }) => Resident(
     id: id,
-    name: name,
-    phoneNumber: phoneNumber,
-    birthDate: birthDate,
-    email: email,
-    points: points,
-    leaderboardPoints: leaderboardPoints,
+    name: name ?? this.name,
+    phoneNumber: phoneNumber ?? this.phoneNumber,
+    birthDate: birthDate ?? this.birthDate,
+    email: email ?? this.email,
+    points: points ?? this.points,
+    leaderboardPoints: leaderboardPoints ?? this.leaderboardPoints,
     status: status ?? this.status,
-    role: role,
+    role: role ?? this.role,
   );
 
   @override

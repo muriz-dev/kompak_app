@@ -63,7 +63,9 @@ class HomePage extends StatelessWidget {
                 onActivityTap: (activity) => context.router.push(
                   ActivityDetailRoute(eventId: activity.id),
                 ),
-                onAnnouncementTap: () => _showAnnouncementNotice(context),
+                onAnnouncementTap: (announcement) => context.router.push(
+                  AnnouncementDetailRoute(announcementId: announcement.id),
+                ),
               ),
               HomeError() => _HomeErrorView(
                 message: state.message,
@@ -85,14 +87,6 @@ class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(content: Text('Pengingat ${activity.title} diaktifkan.')),
-      );
-  }
-
-  void _showAnnouncementNotice(BuildContext context) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Detail pengumuman segera tersedia.')),
       );
   }
 
@@ -152,7 +146,7 @@ class HomeDashboardView extends StatelessWidget {
   final VoidCallback onViewAllActivities;
   final ValueChanged<UpcomingActivity> onActivityReminder;
   final ValueChanged<UpcomingActivity> onActivityTap;
-  final VoidCallback onAnnouncementTap;
+  final ValueChanged<Announcement> onAnnouncementTap;
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +233,7 @@ class HomeDashboardView extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 14),
                   child: AnnouncementCard(
                     announcement: announcement,
-                    onTap: onAnnouncementTap,
+                    onTap: () => onAnnouncementTap(announcement),
                   ),
                 ),
               ),

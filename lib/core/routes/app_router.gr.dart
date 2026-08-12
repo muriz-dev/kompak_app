@@ -447,6 +447,112 @@ class AdminProvidersRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [AdminResidentDetailPage]
+class AdminResidentDetailRoute
+    extends PageRouteInfo<AdminResidentDetailRouteArgs> {
+  AdminResidentDetailRoute({
+    required String residentId,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AdminResidentDetailRoute.name,
+         args: AdminResidentDetailRouteArgs(residentId: residentId, key: key),
+         rawPathParams: {'residentId': residentId},
+         initialChildren: children,
+       );
+
+  static const String name = 'AdminResidentDetailRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<AdminResidentDetailRouteArgs>(
+        orElse: () => AdminResidentDetailRouteArgs(
+          residentId: pathParams.getString('residentId'),
+        ),
+      );
+      return AdminResidentDetailPage(
+        residentId: args.residentId,
+        key: args.key,
+      );
+    },
+  );
+}
+
+class AdminResidentDetailRouteArgs {
+  const AdminResidentDetailRouteArgs({required this.residentId, this.key});
+
+  final String residentId;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'AdminResidentDetailRouteArgs{residentId: $residentId, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AdminResidentDetailRouteArgs) return false;
+    return residentId == other.residentId && key == other.key;
+  }
+
+  @override
+  int get hashCode => residentId.hashCode ^ key.hashCode;
+}
+
+/// generated route for
+/// [AdminResidentFormPage]
+class AdminResidentFormRoute extends PageRouteInfo<AdminResidentFormRouteArgs> {
+  AdminResidentFormRoute({
+    Resident? resident,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AdminResidentFormRoute.name,
+         args: AdminResidentFormRouteArgs(resident: resident, key: key),
+         initialChildren: children,
+       );
+
+  static const String name = 'AdminResidentFormRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<AdminResidentFormRouteArgs>(
+        orElse: () => const AdminResidentFormRouteArgs(),
+      );
+      return AdminResidentFormPage(resident: args.resident, key: args.key);
+    },
+  );
+}
+
+class AdminResidentFormRouteArgs {
+  const AdminResidentFormRouteArgs({this.resident, this.key});
+
+  final Resident? resident;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'AdminResidentFormRouteArgs{resident: $resident, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AdminResidentFormRouteArgs) return false;
+    return resident == other.resident && key == other.key;
+  }
+
+  @override
+  int get hashCode => resident.hashCode ^ key.hashCode;
+}
+
+/// generated route for
 /// [AdminResidentsPage]
 class AdminResidentsRoute extends PageRouteInfo<void> {
   const AdminResidentsRoute({List<PageRouteInfo>? children})
@@ -460,6 +566,66 @@ class AdminResidentsRoute extends PageRouteInfo<void> {
       return const AdminResidentsPage();
     },
   );
+}
+
+/// generated route for
+/// [AnnouncementDetailPage]
+class AnnouncementDetailRoute
+    extends PageRouteInfo<AnnouncementDetailRouteArgs> {
+  AnnouncementDetailRoute({
+    required String announcementId,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AnnouncementDetailRoute.name,
+         args: AnnouncementDetailRouteArgs(
+           announcementId: announcementId,
+           key: key,
+         ),
+         rawPathParams: {'announcementId': announcementId},
+         initialChildren: children,
+       );
+
+  static const String name = 'AnnouncementDetailRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<AnnouncementDetailRouteArgs>(
+        orElse: () => AnnouncementDetailRouteArgs(
+          announcementId: pathParams.getString('announcementId'),
+        ),
+      );
+      return AnnouncementDetailPage(
+        announcementId: args.announcementId,
+        key: args.key,
+      );
+    },
+  );
+}
+
+class AnnouncementDetailRouteArgs {
+  const AnnouncementDetailRouteArgs({required this.announcementId, this.key});
+
+  final String announcementId;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'AnnouncementDetailRouteArgs{announcementId: $announcementId, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AnnouncementDetailRouteArgs) return false;
+    return announcementId == other.announcementId && key == other.key;
+  }
+
+  @override
+  int get hashCode => announcementId.hashCode ^ key.hashCode;
 }
 
 /// generated route for
