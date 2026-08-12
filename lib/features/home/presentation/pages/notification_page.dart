@@ -13,11 +13,7 @@ class NotificationPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.black,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
           onPressed: () => context.router.back(),
         ),
         title: const Text(
@@ -158,7 +154,7 @@ class NotificationPage extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -169,10 +165,7 @@ class NotificationPage extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: iconColor,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
             child: Icon(icon, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 16),

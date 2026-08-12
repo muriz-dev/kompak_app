@@ -15,12 +15,16 @@ class EventLocationPickerPage extends StatefulWidget {
     this.initialLatitude,
     this.initialLongitude,
     this.initialRadiusMeters = EventLocationSelection.defaultRadiusMeters,
+    this.title = 'Pilih Lokasi',
+    this.showRadiusControl = true,
     this.locationService = const GeolocatorEventLocationService(),
   });
 
   final double? initialLatitude;
   final double? initialLongitude;
   final int initialRadiusMeters;
+  final String title;
+  final bool showRadiusControl;
   final EventLocationService locationService;
 
   @override
@@ -75,6 +79,7 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
         child: Column(
           children: [
             _LocationPickerHeader(
+              title: widget.title,
               onBack: () => Navigator.of(context).maybePop(),
             ),
             Expanded(
@@ -143,10 +148,11 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
                 ],
               ),
             ),
-            _RadiusControlPanel(
-              radiusMeters: _selection.radiusMeters,
-              onChanged: _changeRadius,
-            ),
+            if (widget.showRadiusControl)
+              _RadiusControlPanel(
+                radiusMeters: _selection.radiusMeters,
+                onChanged: _changeRadius,
+              ),
             _ConfirmationBar(onConfirm: _confirmSelection),
           ],
         ),
@@ -219,8 +225,9 @@ class _EventLocationPickerPageState extends State<EventLocationPickerPage> {
 }
 
 class _LocationPickerHeader extends StatelessWidget {
-  const _LocationPickerHeader({required this.onBack});
+  const _LocationPickerHeader({required this.title, required this.onBack});
 
+  final String title;
   final VoidCallback onBack;
 
   @override
@@ -243,9 +250,9 @@ class _LocationPickerHeader extends StatelessWidget {
               ),
             ),
           ),
-          const Text(
-            'Pilih Lokasi',
-            style: TextStyle(
+          Text(
+            title,
+            style: const TextStyle(
               color: eventFormInk,
               fontSize: 20,
               fontWeight: FontWeight.w500,

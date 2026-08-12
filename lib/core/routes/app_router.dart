@@ -2,6 +2,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/admin/residents/presentation/pages/admin_residents_page.dart';
+import '../../features/admin/providers/presentation/pages/admin_provider_detail_page.dart';
+import '../../features/admin/providers/presentation/pages/admin_providers_page.dart';
+import '../../features/admin/providers/presentation/pages/admin_point_shop_page.dart';
+import '../../features/admin/rewards/domain/entities/admin_leaderboard_reward.dart';
+import '../../features/admin/rewards/presentation/pages/admin_leaderboard_reward_form_page.dart';
+import '../../features/admin/rewards/presentation/pages/admin_leaderboard_reward_picker_page.dart';
+import '../../features/admin/rewards/presentation/pages/admin_leaderboard_rewards_page.dart';
 import '../../features/announcements/domain/entities/community_announcement.dart';
 import '../../features/admin/announcements/presentation/pages/admin_announcements_page.dart';
 import '../../features/admin/announcements/presentation/pages/announcement_form_page.dart';
@@ -32,6 +39,10 @@ import '../../features/store/presentation/pages/point_history_page.dart';
 import '../../features/store/presentation/pages/redeem_confirmation_page.dart';
 import '../../features/store/domain/entities/store_data.dart';
 import '../../features/leaderboard/presentation/pages/leaderboard_page.dart';
+import '../../features/providers/domain/entities/provider_account.dart';
+import '../../features/providers/presentation/pages/provider_entry_page.dart';
+import '../../features/providers/presentation/pages/provider_product_form_page.dart';
+import '../../features/providers/presentation/pages/provider_profile_page.dart';
 import 'main_page.dart';
 import 'session_guards.dart';
 
@@ -78,6 +89,41 @@ class AppRouter extends RootStackRouter {
       guards: [_adminSessionGuard],
     ),
     AutoRoute(
+      page: AdminProvidersRoute.page,
+      path: '/admin/providers',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminProviderDetailRoute.page,
+      path: '/admin/providers/:providerId',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminPointShopRoute.page,
+      path: '/admin/point-shop',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminPointShopAddRoute.page,
+      path: '/admin/point-shop/add',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminLeaderboardRewardsRoute.page,
+      path: '/admin/leaderboard-rewards',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminLeaderboardRewardFormRoute.page,
+      path: '/admin/leaderboard-rewards/edit',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
+      page: AdminLeaderboardRewardPickerRoute.page,
+      path: '/admin/leaderboard-rewards/pick',
+      guards: [_adminSessionGuard],
+    ),
+    AutoRoute(
       page: AdminEventsRoute.page,
       path: '/admin/events',
       guards: [_adminSessionGuard],
@@ -119,6 +165,21 @@ class AppRouter extends RootStackRouter {
       ],
     ),
     AutoRoute(page: PointHistoryRoute.page, guards: [_activeSessionGuard]),
+    AutoRoute(
+      page: ProviderEntryRoute.page,
+      path: '/provider',
+      guards: [_activeSessionGuard],
+    ),
+    AutoRoute(
+      page: ProviderProductFormRoute.page,
+      path: '/provider/products/form',
+      guards: [_activeSessionGuard],
+    ),
+    AutoRoute(
+      page: ProviderProfileRoute.page,
+      path: '/provider/profile',
+      guards: [_activeSessionGuard],
+    ),
     AutoRoute(
       page: RedeemConfirmationRoute.page,
       guards: [_activeSessionGuard],

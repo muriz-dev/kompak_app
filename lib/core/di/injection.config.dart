@@ -33,6 +33,24 @@ import '../../features/admin/events/presentation/bloc/create_event_cubit.dart'
     as _i269;
 import '../../features/admin/events/presentation/bloc/edit_event_cubit.dart'
     as _i958;
+import '../../features/admin/providers/data/datasources/admin_point_shop_remote_data_source.dart'
+    as _i306;
+import '../../features/admin/providers/data/datasources/admin_providers_remote_data_source.dart'
+    as _i428;
+import '../../features/admin/providers/data/repositories/admin_point_shop_repository_impl.dart'
+    as _i467;
+import '../../features/admin/providers/data/repositories/admin_providers_repository_impl.dart'
+    as _i1001;
+import '../../features/admin/providers/domain/repositories/admin_point_shop_repository.dart'
+    as _i1000;
+import '../../features/admin/providers/domain/repositories/admin_providers_repository.dart'
+    as _i823;
+import '../../features/admin/providers/presentation/bloc/admin_point_shop_cubit.dart'
+    as _i372;
+import '../../features/admin/providers/presentation/bloc/admin_provider_detail_cubit.dart'
+    as _i498;
+import '../../features/admin/providers/presentation/bloc/admin_providers_cubit.dart'
+    as _i819;
 import '../../features/admin/residents/data/datasources/admin_residents_remote_data_source.dart'
     as _i592;
 import '../../features/admin/residents/data/repositories/admin_residents_repository_impl.dart'
@@ -41,6 +59,16 @@ import '../../features/admin/residents/domain/repositories/admin_residents_repos
     as _i943;
 import '../../features/admin/residents/presentation/bloc/admin_residents_cubit.dart'
     as _i938;
+import '../../features/admin/rewards/data/datasources/admin_leaderboard_rewards_remote_data_source.dart'
+    as _i186;
+import '../../features/admin/rewards/data/repositories/admin_leaderboard_rewards_repository_impl.dart'
+    as _i572;
+import '../../features/admin/rewards/domain/repositories/admin_leaderboard_rewards_repository.dart'
+    as _i396;
+import '../../features/admin/rewards/presentation/bloc/admin_leaderboard_reward_form_cubit.dart'
+    as _i466;
+import '../../features/admin/rewards/presentation/bloc/admin_leaderboard_rewards_cubit.dart'
+    as _i347;
 import '../../features/announcements/data/datasources/announcements_remote_data_source.dart'
     as _i161;
 import '../../features/announcements/data/repositories/announcements_repository_impl.dart'
@@ -78,11 +106,21 @@ import '../../features/home/presentation/bloc/home_cubit.dart' as _i816;
 import '../../features/leaderboard/data/datasources/leaderboard_remote_data_source.dart'
     as _i386;
 import '../../features/leaderboard/data/repositories/leaderboard_repository_impl.dart'
-    as _i1008;
+    as _i1009;
 import '../../features/leaderboard/domain/repositories/leaderboard_repository.dart'
     as _i655;
 import '../../features/leaderboard/presentation/bloc/leaderboard_cubit.dart'
     as _i100;
+import '../../features/providers/data/datasources/provider_remote_data_source.dart'
+    as _i962;
+import '../../features/providers/data/repositories/provider_repository_impl.dart'
+    as _i1008;
+import '../../features/providers/domain/repositories/provider_repository.dart'
+    as _i432;
+import '../../features/providers/presentation/bloc/provider_cubit.dart'
+    as _i699;
+import '../../features/providers/presentation/bloc/provider_product_form_cubit.dart'
+    as _i753;
 import '../../features/store/data/datasources/point_shop_remote_data_source.dart'
     as _i971;
 import '../../features/store/data/repositories/point_shop_repository_impl.dart'
@@ -135,11 +173,17 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i875.SessionInvalidationBus>(),
       ),
     );
+    gh.lazySingleton<_i428.AdminProvidersRemoteDataSource>(
+      () => _i428.AdminProvidersRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i680.AttendanceRemoteDataSource>(
       () => _i680.AttendanceRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i386.LeaderboardRemoteDataSource>(
       () => _i386.LeaderboardRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i186.AdminLeaderboardRewardsRemoteDataSource>(
+      () => _i186.AdminLeaderboardRewardsRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i461.AdminEventsRemoteDataSource>(
       () => _i461.AdminEventsRemoteDataSourceImpl(gh<_i361.Dio>()),
@@ -162,6 +206,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1016.SessionTokenStore>(),
       ),
     );
+    gh.lazySingleton<_i962.ProviderRemoteDataSource>(
+      () => _i962.ProviderRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i971.PointShopRemoteDataSource>(
       () => _i971.PointShopRemoteDataSourceImpl(gh<_i361.Dio>()),
     );
@@ -171,8 +218,21 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i941.RegisterUseCase>(
       () => _i941.RegisterUseCase(gh<_i787.AuthRepository>()),
     );
+    gh.lazySingleton<_i306.AdminPointShopRemoteDataSource>(
+      () => _i306.AdminPointShopRemoteDataSourceImpl(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i396.AdminLeaderboardRewardsRepository>(
+      () => _i572.AdminLeaderboardRewardsRepositoryImpl(
+        gh<_i186.AdminLeaderboardRewardsRemoteDataSource>(),
+      ),
+    );
     gh.factory<_i797.AuthBloc>(
       () => _i797.AuthBloc(gh<_i941.RegisterUseCase>()),
+    );
+    gh.lazySingleton<_i823.AdminProvidersRepository>(
+      () => _i1001.AdminProvidersRepositoryImpl(
+        gh<_i428.AdminProvidersRemoteDataSource>(),
+      ),
     );
     gh.lazySingleton<_i477.AttendanceRepository>(
       () => _i719.AttendanceRepositoryImpl(
@@ -184,11 +244,21 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i693.CommunityEventsRemoteDataSource>(),
       ),
     );
+    gh.factory<_i498.AdminProviderDetailCubit>(
+      () =>
+          _i498.AdminProviderDetailCubit(gh<_i823.AdminProvidersRepository>()),
+    );
+    gh.factory<_i819.AdminProvidersCubit>(
+      () => _i819.AdminProvidersCubit(gh<_i823.AdminProvidersRepository>()),
+    );
     gh.factory<_i494.AttendanceCheckInCubit>(
       () => _i494.AttendanceCheckInCubit(gh<_i477.AttendanceRepository>()),
     );
+    gh.lazySingleton<_i432.ProviderRepository>(
+      () => _i1008.ProviderRepositoryImpl(gh<_i962.ProviderRemoteDataSource>()),
+    );
     gh.lazySingleton<_i655.LeaderboardRepository>(
-      () => _i1008.LeaderboardRepositoryImpl(
+      () => _i1009.LeaderboardRepositoryImpl(
         gh<_i386.LeaderboardRemoteDataSource>(),
       ),
     );
@@ -220,6 +290,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i100.LeaderboardCubit>(
       () => _i100.LeaderboardCubit(gh<_i655.LeaderboardRepository>()),
     );
+    gh.factory<_i699.ProviderCubit>(
+      () => _i699.ProviderCubit(gh<_i432.ProviderRepository>()),
+    );
+    gh.factory<_i753.ProviderProductFormCubit>(
+      () => _i753.ProviderProductFormCubit(gh<_i432.ProviderRepository>()),
+    );
+    gh.factory<_i347.AdminLeaderboardRewardsCubit>(
+      () => _i347.AdminLeaderboardRewardsCubit(
+        gh<_i396.AdminLeaderboardRewardsRepository>(),
+      ),
+    );
     gh.lazySingleton<_i775.PointShopRepository>(
       () =>
           _i288.PointShopRepositoryImpl(gh<_i971.PointShopRemoteDataSource>()),
@@ -229,6 +310,17 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i940.AnnouncementFormCubit>(
       () => _i940.AnnouncementFormCubit(gh<_i924.AnnouncementsRepository>()),
+    );
+    gh.lazySingleton<_i1000.AdminPointShopRepository>(
+      () => _i467.AdminPointShopRepositoryImpl(
+        gh<_i306.AdminPointShopRemoteDataSource>(),
+      ),
+    );
+    gh.factory<_i466.AdminLeaderboardRewardFormCubit>(
+      () => _i466.AdminLeaderboardRewardFormCubit(
+        gh<_i396.AdminLeaderboardRewardsRepository>(),
+        gh<_i823.AdminProvidersRepository>(),
+      ),
     );
     gh.lazySingleton<_i78.AdminEventsRepository>(
       () => _i99.AdminEventsRepositoryImpl(
@@ -246,6 +338,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i820.CommunityEventsRepository>(),
         gh<_i924.AnnouncementsRepository>(),
       ),
+    );
+    gh.factory<_i372.AdminPointShopCubit>(
+      () => _i372.AdminPointShopCubit(gh<_i1000.AdminPointShopRepository>()),
     );
     gh.factory<_i879.PointHistoryCubit>(
       () => _i879.PointHistoryCubit(gh<_i775.PointShopRepository>()),

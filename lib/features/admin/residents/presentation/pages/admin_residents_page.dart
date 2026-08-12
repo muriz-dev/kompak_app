@@ -356,6 +356,18 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
       context.router.push(const AdminAnnouncementsRoute());
       return;
     }
+    if (action == _ManagementAction.providers) {
+      context.router.push(const AdminProvidersRoute());
+      return;
+    }
+    if (action == _ManagementAction.pointStore) {
+      context.router.push(AdminPointShopRoute());
+      return;
+    }
+    if (action == _ManagementAction.rewards) {
+      context.router.push(const AdminLeaderboardRewardsRoute());
+      return;
+    }
 
     final label = switch (action) {
       _ManagementAction.addResident => 'Tambah warga',
@@ -388,11 +400,7 @@ class _AdminResidentsViewState extends State<_AdminResidentsView> {
         },
         onSwitchProvider: () {
           Navigator.of(dialogContext).pop();
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('Mode akun UMKM segera tersedia.')),
-            );
+          context.router.root.push(const ProviderEntryRoute());
         },
         onLogout: () {
           Navigator.of(dialogContext).pop();

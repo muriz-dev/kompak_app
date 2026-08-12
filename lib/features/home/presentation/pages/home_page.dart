@@ -117,11 +117,7 @@ class HomePage extends StatelessWidget {
         },
         onSwitchProvider: () {
           Navigator.of(dialogContext).pop();
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('Mode akun UMKM segera tersedia.')),
-            );
+          router.push(const ProviderEntryRoute());
         },
         onLogout: () {
           Navigator.of(dialogContext).pop();
